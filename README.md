@@ -43,29 +43,29 @@ Disaster, cost pressure, contract end, curiosity: the reason you're moving doesn
 Best of all: the decision tree fits in 9 lines.
 
 ```python
-loop-at-start:
+until serving():
     if local state exists:
         engine version vs state version:
-            equal:    -> serving
+            equal:    serving()
             engine >: migrate()
             engine <: abort("downgrade")
     else:
         if fetch_backup(): restore(backup)
         else:              init()
 
-on serving: schedule backups
+serving(): run app, schedule backups
 ```
 
-Three facts determine the operation: does local state exist, is a valid backup available (fetch_backup() includes retrieval and integrity verification), and how does the engine version compare to the state version. Every branch except `-> serving` and `abort` changes state and loops back.
+Three facts determine the operation: does local state exist, is a valid backup available (fetch_backup() includes retrieval and integrity verification), and how does the engine version compare to the state version. Every branch except serving() and abort() changes state and loops back.
 
-- Reboot: state exists, equal -> serving.
-- Fresh install: no state, no backup -> init() -> state created -> equal -> serving.
-- In-place upgrade: state exists, engine > -> migrate() -> equal -> serving.
-- DR restore: no state, backup -> restore() -> state created -> equal -> serving.
-- Out-of-place upgrade: no state, backup -> restore() -> state created -> engine > -> migrate() -> equal -> serving. If you choose this path over in-place upgrade (a business decision, not a technical requirement), every upgrade exercises the restore path. Not prescribed by the pattern - just a property that comes at no additional cost.
+- Reboot: state exists, equal -> serving().
+- Fresh install: no state, no backup -> init() -> state created -> equal -> serving().
+- In-place upgrade: state exists, engine > -> migrate() -> equal -> serving().
+- DR restore: no state, backup -> restore() -> state created -> equal -> serving().
+- Out-of-place upgrade: no state, backup -> restore() -> state created -> engine > -> migrate() -> equal -> serving(). If you choose this path over in-place upgrade (a business decision, not a technical requirement), every upgrade exercises the restore path. Not prescribed by the pattern - just a property that comes at no additional cost.
 - Migration: same as DR restore, different server. Same operation.
 - Evacuation: same as DR restore, different provider. Same operation.
-- Downgrade attempt: state exists, engine < -> abort. Running old code against a new schema is dangerous - the industry converged on fix-forward for good reason. Bartl prevents the dangerous thing. If you need to go back, restore from pre-upgrade backup + restart: that's the DR path, already a first-class operation (requires that the backup was taken before the upgrade - enforced by convention, not by the mechanism).
+- Downgrade attempt: state exists, engine < -> abort(). Running old code against a new schema is dangerous - the industry converged on fix-forward for good reason. Bartl prevents the dangerous thing. If you need to go back, restore from pre-upgrade backup + restart: that's the DR path, already a first-class operation (requires that the backup was taken before the upgrade - enforced by convention, not by the mechanism).
 
 This covers all lifecycle operations. Explicitly out of scope: infrastructure (scaling, provisioning), data integrity (corruption without version change), and runtime concerns (monitoring, cert rotation). These observe or maintain the system but don't move state.
 

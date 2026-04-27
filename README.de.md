@@ -45,29 +45,29 @@ Katastrophe, Kostendruck, Vertragsende, Neugier: der Grund für den Wechsel änd
 Das Beste: der Entscheidungsbaum paßt in 9 Zeilen.
 
 ```python
-loop-at-start:
+until serving():
     if local state exists:
         engine version vs state version:
-            equal:    -> serving
+            equal:    serving()
             engine >: migrate()
             engine <: abort("downgrade")
     else:
         if fetch_backup(): restore(backup)
         else:              init()
 
-on serving: schedule backups
+serving(): run app, schedule backups
 ```
 
-Drei Fakten bestimmen die Operation: Existiert lokaler State, ist ein gültiges Backup verfügbar (fetch_backup() umfaßt Abruf und Integritätsprüfung), und wie verhält sich die Engine-Version zur State-Version. Jeder Zweig außer `-> serving` und `abort` verändert den State und springt zurück zum Loop.
+Drei Fakten bestimmen die Operation: Existiert lokaler State, ist ein gültiges Backup verfügbar (fetch_backup() umfaßt Abruf und Integritätsprüfung), und wie verhält sich die Engine-Version zur State-Version. Jeder Zweig außer serving() und abort() verändert den State und springt zurück.
 
-- Neustart: State existiert, gleich -> Serving.
-- Neuinstallation: kein State, kein Backup -> Init() -> State erstellt -> gleich -> Serving.
-- In-place Upgrade: State existiert, Engine > -> Migrate() -> gleich -> Serving.
-- DR Restore: kein State, Backup -> Restore() -> State erstellt -> gleich -> Serving.
-- Out-of-place Upgrade: kein State, Backup -> Restore() -> State erstellt -> Engine > -> Migrate() -> gleich -> Serving. Wählt man diesen Weg statt In-place Upgrade (eine geschäftliche Entscheidung, keine technische Anforderung), wird bei jedem Upgrade der Restore-Pfad durchlaufen. Nicht vom Muster vorgeschrieben - nur eine Eigenschaft, die ohne zusätzliche Kosten entsteht.
+- Neustart: State existiert, gleich -> serving().
+- Neuinstallation: kein State, kein Backup -> init() -> State erstellt -> gleich -> serving().
+- In-place Upgrade: State existiert, Engine > -> migrate() -> gleich -> serving().
+- DR Restore: kein State, Backup -> restore() -> State erstellt -> gleich -> serving().
+- Out-of-place Upgrade: kein State, Backup -> restore() -> State erstellt -> Engine > -> migrate() -> gleich -> serving(). Wählt man diesen Weg statt In-place Upgrade (eine geschäftliche Entscheidung, keine technische Anforderung), wird bei jedem Upgrade der Restore-Pfad durchlaufen. Nicht vom Muster vorgeschrieben - nur eine Eigenschaft, die ohne zusätzliche Kosten entsteht.
 - Migration: wie DR Restore, anderer Server. Dieselbe Operation.
 - Evakuierung: wie DR Restore, anderer Anbieter. Dieselbe Operation.
-- Downgrade-Versuch: State existiert, Engine < -> Abort. Alten Code gegen ein neues Schema laufen zu lassen ist gefährlich - die Branche hat sich aus gutem Grund auf Fix-Forward geeinigt. Bartl verhindert das Gefährliche. Muß man zurück, Restore aus dem Backup vor dem Upgrade + Neustart: das ist der DR-Pfad, bereits eine erstklassige Operation (setzt voraus, daß das Backup vor dem Upgrade erstellt wurde - durch Konvention erzwungen, nicht durch den Mechanismus).
+- Downgrade-Versuch: State existiert, Engine < -> abort(). Alten Code gegen ein neues Schema laufen zu lassen ist gefährlich - die Branche hat sich aus gutem Grund auf Fix-Forward geeinigt. Bartl verhindert das Gefährliche. Muß man zurück, Restore aus dem Backup vor dem Upgrade + Neustart: das ist der DR-Pfad, bereits eine erstklassige Operation (setzt voraus, daß das Backup vor dem Upgrade erstellt wurde - durch Konvention erzwungen, nicht durch den Mechanismus).
 
 Dies deckt alle Lebenszyklus-Operationen ab. Explizit außerhalb des Scope: Infrastruktur (Skalierung, Provisionierung), Datenintegrität (Korruption ohne Versionswechsel) und Runtime-Belange (Monitoring, Zertifikatsrotation). Diese beobachten oder erhalten das System, bewegen aber keinen State.
 
