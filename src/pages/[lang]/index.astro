@@ -1,0 +1,134 @@
+---
+// SPDX-License-Identifier: Apache-2.0
+import MainLayout from "@/layouts/MainLayout.astro";
+import PseudoCode from "@/components/PseudoCode.astro";
+import { SITE } from "@/data/constants";
+import { languages, type Lang } from "@/i18n/ui";
+
+export function getStaticPaths() {
+  return Object.keys(languages).map((lang) => ({ params: { lang } }));
+}
+
+const lang = Astro.params.lang as Lang;
+
+const copy = {
+  en: {
+    heroTitle: "One mechanism for your application's entire lifecycle.",
+    heroSub: "Whatever the starting point, you'll be up and running.",
+    codeLabel: "The complete decision tree.",
+    codeCaption:
+      "A design pattern for application lifecycle. The mechanism branches on what it finds, not on what operation was requested.",
+    factsTitle: "Three facts determine the operation.",
+    fact1Title: "Does local state exist?",
+    fact1Body: "Reboot -> serving. No state -> restore or install.",
+    fact2Title: "Is a valid backup available?",
+    fact2Body: "Backup found -> restore. No backup -> fresh install.",
+    fact3Title: "Engine version vs state version?",
+    fact3Body: "Equal -> serving. Engine newer -> migrate. Engine older -> abort.",
+    q1: "How many customers affected?",
+    q2: "How fast back online?",
+    q3: "How much data lost?",
+    discoveryP1:
+      "Bartl makes the answers automatic consequences of how you operate.",
+    discoveryP2:
+      "Not by adding something - by replacing five separate procedures with one unified mechanism.",
+    disc1: "Automate disaster recovery -> installation comes free.",
+    disc2: "Add version detection -> upgrades come free.",
+    disc3: "Run it on a different server -> migration comes free.",
+    disc4: "Keep the backup portable -> sovereignty comes free.",
+    discoveryP3:
+      "Disaster, cost pressure, contract end, curiosity: the reason you're moving doesn't change the operation. The timeline doesn't either - whether you have thirty seconds or thirty days, it's the same restore. That is Wechselfähigkeit.",
+    whoTitle: "Who this is for",
+    who1: "You run applications in production and need recovery that rehearses itself with every deployment.",
+    who2: "You need data isolation and separate compliance boundaries per customer.",
+    who3: "You want to scale operations linearly - Nth stack adds work, not complexity.",
+    who4: "You want to leave your provider on your terms, on your timeline.",
+    ctaLicense: "Apache-2.0 / CC-BY-4.0.",
+    ctaGithub: "GitHub",
+  },
+  de: {
+    heroTitle: "Ein Mechanismus für den gesamten Lifecycle deiner Anwendung.",
+    heroSub: "Egal, was der Ausgangspunkt ist - du bist betriebsbereit.",
+    codeLabel: "Der vollständige Decision Tree.",
+    codeCaption:
+      "Ein Design Pattern für Application Lifecycle. Der Mechanismus verzweigt anhand dessen, was er vorfindet - nicht anhand der angeforderten Operation.",
+    factsTitle: "Drei Fakten bestimmen die Operation.",
+    fact1Title: "Existiert lokaler State?",
+    fact1Body: "Reboot -> Serving. Kein State -> Restore oder Install.",
+    fact2Title: "Ist ein gültiges Backup verfügbar?",
+    fact2Body: "Backup vorhanden -> Restore. Kein Backup -> Fresh Install.",
+    fact3Title: "Engine-Version vs. State-Version?",
+    fact3Body: "Gleich -> Serving. Engine neuer -> Migrate. Engine älter -> Abort.",
+    q1: "Wie viele Kunden betroffen?",
+    q2: "Wie schnell wieder online?",
+    q3: "Wie viel Datenverlust?",
+    discoveryP1:
+      "Bartl macht die Antworten zu automatischen Konsequenzen deines Betriebs.",
+    discoveryP2:
+      "Nicht durch etwas Zusätzliches - sondern indem fünf separate Prozeduren durch einen einheitlichen Mechanismus ersetzt werden.",
+    disc1: "Automatisiere Disaster Recovery -> Installation kommt gratis.",
+    disc2: "Füge Version Detection hinzu -> Upgrades kommen gratis.",
+    disc3: "Führe es auf einem anderen Server aus -> Migration kommt gratis.",
+    disc4: "Halte das Backup portabel -> Souveränität kommt gratis.",
+    discoveryP3:
+      "Disaster, Kostendruck, Vertragsende, Neugier: der Grund für den Wechsel ändert nicht die Operation. Der Zeitrahmen auch nicht - ob dreißig Sekunden oder dreißig Tage, es ist derselbe Restore. Das ist Wechselfähigkeit.",
+    whoTitle: "Für wen das ist",
+    who1: "Du betreibst Anwendungen in Produktion und brauchst Recovery, die sich mit jedem Deployment selbst probt.",
+    who2: "Du brauchst Datenisolation und separate Compliance-Grenzen pro Kunde.",
+    who3: "Du willst den Betrieb linear skalieren - der N-te Stack bringt Arbeit, nicht Komplexität.",
+    who4: "Du willst deinen Provider zu deinen Bedingungen verlassen, in deinem Zeitrahmen.",
+    ctaLicense: "Apache-2.0 / CC-BY-4.0.",
+    ctaGithub: "GitHub",
+  },
+};
+
+const c = copy[lang];
+---
+
+<MainLayout title={SITE.title} lang={lang}>
+  <div class="max-w-3xl mx-auto px-4 py-16 sm:py-24 space-y-20">
+    {/* Section 1: Hero */}
+    <section class="space-y-4">
+      <h1 class="text-3xl sm:text-4xl lg:text-5xl font-medium leading-tight">
+        {c.heroTitle}
+      </h1>
+      <p class="text-lg text-base-content/70">{c.heroSub}</p>
+    </section>
+
+    {/* Section 2: The decision tree */}
+    <section class="space-y-4">
+      <p class="font-semibold text-lg">{c.codeLabel}</p>
+      <PseudoCode />
+      <p class="text-base-content/70">{c.codeCaption}</p>
+    </section>
+
+    {/* Section 3: The discovery */}
+    <section class="space-y-6">
+      <div class="space-y-2">
+        <p class="text-2xl font-light leading-tight">{c.q1}</p>
+        <p class="text-2xl font-light leading-tight">{c.q2}</p>
+        <p class="text-2xl font-light leading-tight">{c.q3}</p>
+      </div>
+      <p>{c.discoveryP1}</p>
+      <p>{c.discoveryP2}</p>
+      <div class="space-y-2 font-mono text-sm">
+        <p>{c.disc1}</p>
+        <p>{c.disc2}</p>
+        <p>{c.disc3}</p>
+        <p>{c.disc4}</p>
+      </div>
+      <p>{c.discoveryP3}</p>
+    </section>
+
+    {/* Section 5: Who this is for */}
+    <section class="space-y-4">
+      <h2 class="text-2xl font-semibold">{c.whoTitle}</h2>
+      <ul class="space-y-3 list-disc list-inside text-base-content/80">
+        <li>{c.who1}</li>
+        <li>{c.who2}</li>
+        <li>{c.who3}</li>
+        <li>{c.who4}</li>
+      </ul>
+    </section>
+  </div>
+</MainLayout>

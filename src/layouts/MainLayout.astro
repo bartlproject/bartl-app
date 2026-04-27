@@ -1,0 +1,84 @@
+---
+// SPDX-License-Identifier: Apache-2.0
+import "@/assets/styles/global.css";
+import { SITE } from "@/data/constants";
+import { languages, type Lang } from "@/i18n/ui";
+import { useTranslations, getAlternatePath } from "@/i18n/utils";
+import Navbar from "@/components/Navbar.astro";
+import Footer from "@/components/Footer.astro";
+
+interface Props {
+  title: string;
+  description?: string;
+  lang: Lang;
+}
+
+const { title, description = SITE.description, lang } = Astro.props;
+const t = useTranslations(lang);
+const pathname = Astro.url.pathname;
+const canonicalUrl = new URL(pathname, SITE.url);
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title === SITE.title ? title : `${title} - ${SITE.title}`}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content={SITE.author} />
+    <link rel="canonical" href={canonicalUrl.href} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    {Object.keys(languages).map((code) => (
+      <link
+        rel="alternate"
+        hreflang={code}
+        href={new URL(getAlternatePath(pathname, code as Lang), SITE.url).href}
+      />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={new URL(getAlternatePath(pathname, "en"), SITE.url).href} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalUrl.href} />
+    <meta property="og:image" content={new URL("/favicon.svg", SITE.url).href} />
+    <meta property="og:site_name" content={SITE.title} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <script is:inline>
+      (function () {
+        const theme = localStorage.getItem("theme");
+        if (theme === "dark") {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      })();
+    </script>
+  </head>
+  <body class="min-h-screen flex flex-col bg-base-100 text-base-content">
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:p-4 focus:bg-base-100 focus:text-base-content">
+      {t("skip.content")}
+    </a>
+    <Navbar lang={lang} pathname={pathname} />
+    <main id="main-content" class="flex-1">
+      <slot />
+    </main>
+    <Footer lang={lang} pathname={pathname} />
+    <script is:inline>
+      document.addEventListener("click", function (e) {
+        if (e.target && e.target.closest("#theme-toggle")) {
+          var html = document.documentElement;
+          var isDark = html.getAttribute("data-theme") === "dark";
+          if (isDark) {
+            html.removeAttribute("data-theme");
+            localStorage.removeItem("theme");
+          } else {
+            html.setAttribute("data-theme", "dark");
+            localStorage.setItem("theme", "dark");
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

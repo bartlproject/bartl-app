@@ -1,0 +1,60 @@
+---
+// SPDX-License-Identifier: Apache-2.0
+import { languages, type Lang } from "@/i18n/ui";
+import { useTranslations, getAlternatePath } from "@/i18n/utils";
+import { SITE } from "@/data/constants";
+
+interface Props {
+  lang: Lang;
+  pathname: string;
+}
+
+const { lang, pathname } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<header class="sticky top-4 z-50 w-full px-2 lg:px-0">
+  <div class="navbar max-w-[85rem] mx-auto rounded-[26px] bg-base-100/60 backdrop-blur-md border border-base-300/60 min-h-0 px-4 py-1.5">
+    <div class="navbar-start">
+      <a class="text-xl font-semibold" href={`/${lang}/`}>{SITE.title}</a>
+    </div>
+    <div class="navbar-center hidden sm:flex">
+      <a href={`/${lang}/derivation/`} class="btn btn-ghost btn-sm">{t("nav.derivation")}</a>
+    </div>
+    <div class="navbar-end gap-1">
+      <a href={`/${lang}/derivation/`} class="btn btn-ghost btn-sm sm:hidden">{t("nav.derivation")}</a>
+      <a
+        href={SITE.github}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn btn-ghost btn-square btn-sm"
+        aria-label={t("nav.github")}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4">
+          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+      </a>
+      <div class="dropdown dropdown-end">
+        <div tabindex="0" role="button" class="btn btn-ghost btn-sm gap-1" aria-label={t("nav.language")}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4">
+            <circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+          {lang.toUpperCase()}
+        </div>
+        <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-10 w-40 p-2 shadow-md border border-base-300">
+          {Object.entries(languages).map(([code, name]) => (
+            <li>
+              <a href={getAlternatePath(pathname, code as Lang)} class:list={[code === lang && "font-semibold"]}>
+                {name}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <button id="theme-toggle" class="btn btn-ghost btn-square btn-sm" aria-label={t("nav.darkMode")}>
+        <svg class="size-4 block dark:hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        <svg class="size-4 hidden dark:block" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+      </button>
+    </div>
+  </div>
+</header>

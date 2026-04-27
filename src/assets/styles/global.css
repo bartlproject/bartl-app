@@ -1,0 +1,95 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+@import "@fontsource/fira-code";
+
+@plugin "daisyui";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is([data-theme="dark"] *));
+
+@theme {
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --color-black: #000;
+  --color-white: #fff;
+
+  --color-gray-50: oklch(0.985 0.002 247.839);
+  --color-gray-100: oklch(0.967 0.003 264.542);
+  --color-gray-200: oklch(0.928 0.006 264.531);
+  --color-gray-300: oklch(0.872 0.01 258.338);
+  --color-gray-400: oklch(0.707 0.022 261.325);
+  --color-gray-500: oklch(0.551 0.027 264.364);
+  --color-gray-600: oklch(0.446 0.03 256.802);
+  --color-gray-700: oklch(0.373 0.034 259.733);
+  --color-gray-800: oklch(0.278 0.033 256.848);
+  --color-gray-900: oklch(0.21 0.034 264.665);
+  --color-gray-950: oklch(0.13 0.028 261.692);
+
+  --color-neutral-50: oklch(0.985 0 0);
+  --color-neutral-100: oklch(0.97 0 0);
+  --color-neutral-200: oklch(0.922 0 0);
+  --color-neutral-300: oklch(0.87 0 0);
+  --color-neutral-400: oklch(0.708 0 0);
+  --color-neutral-500: oklch(0.556 0 0);
+  --color-neutral-600: oklch(0.439 0 0);
+  --color-neutral-700: oklch(0.371 0 0);
+  --color-neutral-800: oklch(0.269 0 0);
+  --color-neutral-900: oklch(0.205 0 0);
+  --color-neutral-950: oklch(0.145 0 0);
+
+  --color-limed-spruce-50: #f3f8f8;
+  --color-limed-spruce-100: #e0eded;
+  --color-limed-spruce-200: #c5dbdc;
+  --color-limed-spruce-300: #9cc2c4;
+  --color-limed-spruce-400: #6ca0a4;
+  --color-limed-spruce-500: #518489;
+  --color-limed-spruce-600: #466e74;
+  --color-limed-spruce-700: #3d5b61;
+  --color-limed-spruce-800: #3b5257;
+  --color-limed-spruce-900: #324347;
+  --color-limed-spruce-950: #1e2a2e;
+
+  --font-sans: "Inter Variable", "Helvetica Neue", system-ui, sans-serif;
+  --font-mono: "Fira Code", "Fira Mono", "SF Mono", Menlo, monospace;
+}
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-weight: 400;
+  }
+
+  h1 {
+    font-weight: 500;
+  }
+
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 600;
+  }
+
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: var(--font-mono);
+  }
+}

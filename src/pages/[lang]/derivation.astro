@@ -1,0 +1,69 @@
+---
+// SPDX-License-Identifier: Apache-2.0
+import MainLayout from "@/layouts/MainLayout.astro";
+import PseudoCode from "@/components/PseudoCode.astro";
+import { languages, type Lang } from "@/i18n/ui";
+
+export function getStaticPaths() {
+  return Object.keys(languages).map((lang) => ({ params: { lang } }));
+}
+
+const lang = Astro.params.lang as Lang;
+
+// @ts-ignore - markdown imports
+const PatternEn = lang === "de"
+  ? (await import("../../../README.de.md")).default
+  : (await import("../../../README.md")).default;
+
+const title = lang === "de" ? "Herleitung" : "Derivation";
+const description =
+  lang === "de"
+    ? "Die vollständige Herleitung des Bartl Design Patterns."
+    : "The full derivation of the Bartl design pattern.";
+
+const sections =
+  lang === "en"
+    ? [
+        { id: "what-is-bartl", label: "What is Bartl?" },
+        { id: "the-problem", label: "The problem" },
+        { id: "the-premises", label: "The premises" },
+        { id: "the-discovery", label: "The discovery" },
+        { id: "the-mechanism", label: "The mechanism" },
+        { id: "what-follows", label: "What follows" },
+      ]
+    : [
+        { id: "what-is-bartl", label: "Was ist Bartl?" },
+        { id: "the-problem", label: "Das Problem" },
+        { id: "the-premises", label: "Die Prämissen" },
+        { id: "the-discovery", label: "Die Entdeckung" },
+        { id: "the-mechanism", label: "Der Mechanismus" },
+        { id: "what-follows", label: "Was folgt" },
+      ];
+---
+
+<MainLayout title={title} lang={lang} description={description}>
+  <div class="max-w-7xl mx-auto px-4 py-12 lg:flex lg:gap-12">
+    {/* Sticky TOC - desktop */}
+    <aside class="hidden lg:block lg:w-56 shrink-0">
+      <nav class="sticky top-20">
+        <h2 class="font-semibold mb-3 text-sm uppercase tracking-wide text-base-content/50">
+          {lang === "de" ? "Inhalt" : "Contents"}
+        </h2>
+        <ul class="space-y-2 text-sm">
+          {sections.map((s) => (
+            <li>
+              <a href={`#${s.id}`} class="link link-hover text-base-content/70 hover:text-base-content">
+                {s.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </aside>
+
+    {/* Main content */}
+    <article class="prose prose-gray dark:prose-invert max-w-3xl mx-auto lg:mx-0">
+      <PatternEn />
+    </article>
+  </div>
+</MainLayout>
