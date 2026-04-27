@@ -1,7 +1,7 @@
 ---
 // SPDX-License-Identifier: Apache-2.0
 import MainLayout from "@/layouts/MainLayout.astro";
-import PseudoCode from "@/components/PseudoCode.astro";
+import InteractivePseudoCode from "@/components/InteractivePseudoCode.astro";
 import { SITE } from "@/data/constants";
 import { languages, type Lang } from "@/i18n/ui";
 
@@ -98,7 +98,7 @@ const c = copy[lang];
     {/* Section 2: The decision tree */}
     <section class="space-y-4">
       <p class="font-semibold text-lg">{c.codeLabel}</p>
-      <PseudoCode />
+      <InteractivePseudoCode lang={lang} />
       <p class="text-base-content/70">{c.codeCaption}</p>
     </section>
 

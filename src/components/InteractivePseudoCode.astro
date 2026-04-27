@@ -1,0 +1,166 @@
+---
+// SPDX-License-Identifier: Apache-2.0
+/**
+ * Interactive pseudocode path highlighter.
+ * Seven scenario buttons highlight which lines execute for each path.
+ * Nord on light page, GitHub Light on dark page (contrast, not blend).
+ */
+interface Props {
+  lang: string;
+}
+
+const { lang } = Astro.props;
+
+const labels: Record<string, Record<string, string>> = {
+  en: {
+    reboot: "Reboot",
+    "fresh-install": "Fresh install",
+    "in-place-upgrade": "In-place upgrade",
+    "dr-restore": "DR restore",
+    "out-of-place-upgrade": "Out-of-place upgrade",
+    migration: "Migration",
+    evacuation: "Evacuation",
+  },
+  de: {
+    reboot: "Reboot",
+    "fresh-install": "Fresh Install",
+    "in-place-upgrade": "In-place Upgrade",
+    "dr-restore": "DR Restore",
+    "out-of-place-upgrade": "Out-of-place Upgrade",
+    migration: "Migration",
+    evacuation: "Evacuation",
+  },
+};
+
+const btnLabels = labels[lang] || labels["en"];
+
+const scenarios = [
+  "reboot",
+  "fresh-install",
+  "in-place-upgrade",
+  "dr-restore",
+  "out-of-place-upgrade",
+  "migration",
+  "evacuation",
+] as const;
+
+type Line = { html: string; scenarios: string };
+
+const lines: Line[] = [
+  {
+    html: `<span class="text-[#88c0d0] dark:text-[#0969da]">until</span> <span class="text-[#88c0d0] dark:text-[#0969da]">serving()</span>:`,
+    scenarios: "reboot fresh-install in-place-upgrade dr-restore out-of-place-upgrade migration evacuation",
+  },
+  {
+    html: `    <span class="text-[#88c0d0] dark:text-[#0969da]">if</span> local state exists:`,
+    scenarios: "reboot in-place-upgrade",
+  },
+  {
+    html: `        engine version vs state version:`,
+    scenarios: "reboot in-place-upgrade",
+  },
+  {
+    html: `            equal:    <span class="text-[#88c0d0] dark:text-[#0969da]">serving()</span>`,
+    scenarios: "reboot",
+  },
+  {
+    html: `            engine >: <span class="text-[#88c0d0] dark:text-[#0969da]">migrate()</span>`,
+    scenarios: "in-place-upgrade out-of-place-upgrade",
+  },
+  {
+    html: `            engine &lt;: <span class="text-[#bf616a] dark:text-[#cf222e]">abort</span>(<span class="text-[#616e88] dark:text-[#656d76]">"downgrade"</span>)`,
+    scenarios: "",
+  },
+  {
+    html: `    <span class="text-[#88c0d0] dark:text-[#0969da]">else</span>:`,
+    scenarios: "fresh-install dr-restore out-of-place-upgrade migration evacuation",
+  },
+  {
+    html: `        <span class="text-[#88c0d0] dark:text-[#0969da]">if</span> <span class="text-[#88c0d0] dark:text-[#0969da]">fetch_backup()</span>: <span class="text-[#88c0d0] dark:text-[#0969da]">restore</span>(backup)`,
+    scenarios: "dr-restore out-of-place-upgrade migration evacuation",
+  },
+  {
+    html: `        <span class="text-[#88c0d0] dark:text-[#0969da]">else</span>:              <span class="text-[#88c0d0] dark:text-[#0969da]">init()</span>`,
+    scenarios: "fresh-install",
+  },
+  {
+    html: ``,
+    scenarios: "",
+  },
+  {
+    html: `<span class="text-[#88c0d0] dark:text-[#0969da]">serving()</span>: run app, schedule backups`,
+    scenarios: "reboot fresh-install in-place-upgrade dr-restore out-of-place-upgrade migration evacuation",
+  },
+];
+---
+
+<div id="ipc-container">
+  <div class="rounded-lg overflow-hidden border border-[#3b4252] dark:border-[#d0d7de] shadow-lg shadow-black/10 dark:shadow-black/30">
+    <pre
+      role="figure"
+      aria-label="Bartl decision tree pseudocode"
+      class="bg-[#2e3440] dark:bg-[#ffffff] text-[#d8dee9] dark:text-[#1f2328] font-mono text-xs sm:text-sm md:text-base px-4 sm:px-6 py-5 overflow-x-auto leading-loose"
+    ><code>{lines.map((line) => (
+        <span
+          class="ipc-line block transition-opacity duration-300 border-l-2 border-transparent"
+          data-scenarios={line.scenarios}
+          set:html={line.html + "\n"}
+        />
+      ))}</code></pre>
+  </div>
+
+  <div class="flex flex-wrap gap-2 mt-4">
+    {scenarios.map((s) => (
+      <button class="btn btn-outline btn-sm ipc-btn" data-scenario={s}>
+        {btnLabels[s]}
+      </button>
+    ))}
+  </div>
+</div>
+
+<script>
+  const container = document.getElementById("ipc-container");
+  if (container) {
+    const lines = container.querySelectorAll<HTMLSpanElement>(".ipc-line");
+    const buttons = container.querySelectorAll<HTMLButtonElement>(".ipc-btn");
+    let active: string | null = null;
+
+    function update() {
+      lines.forEach((line) => {
+        const s = line.dataset.scenarios || "";
+        if (!active) {
+          line.style.opacity = "1";
+          line.style.borderColor = "transparent";
+          line.classList.remove("ipc-active-border");
+        } else if (s.split(" ").includes(active)) {
+          line.style.opacity = "1";
+          line.style.borderColor = "";
+          line.classList.add("ipc-active-border");
+        } else {
+          line.style.opacity = "0.3";
+          line.style.borderColor = "transparent";
+          line.classList.remove("ipc-active-border");
+        }
+      });
+      buttons.forEach((btn) => {
+        btn.classList.toggle("btn-active", btn.dataset.scenario === active);
+      });
+    }
+
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        active = btn.dataset.scenario === active ? null : btn.dataset.scenario!;
+        update();
+      });
+    });
+  }
+</script>
+
+<style>
+  .ipc-active-border {
+    border-color: #88c0d0;
+  }
+  :global(.dark) .ipc-active-border {
+    border-color: #0969da;
+  }
+</style>
