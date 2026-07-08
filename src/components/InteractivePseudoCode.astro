@@ -2,7 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
  * Interactive pseudocode path highlighter.
- * Seven scenario buttons highlight which lines execute for each path.
+ * Seven operation buttons highlight which lines execute for each path. The
+ * point of Bartl is that operations you think are different run the SAME
+ * path, so operations whose executed-line set is identical are grouped:
+ * selecting one lights up its whole group and names the collision.
  * Nord on light page, GitHub Light on dark page (contrast, not blend).
  */
 interface Props {
@@ -34,6 +37,21 @@ const labels: Record<string, Record<string, string>> = {
 
 const btnLabels = labels[lang] || labels["en"];
 
+const captions: Record<string, { none: string; solo: string; same: string }> = {
+  en: {
+    none: "Pick an operation to light up the lines that run for it.",
+    solo: "Its own path - no other operation runs exactly these lines.",
+    same: "Same path as {list} - the mechanism runs these identically.",
+  },
+  de: {
+    none: "Wähle eine Operation - dann leuchten die Zeilen, die dafür laufen.",
+    solo: "Eigener Pfad - keine andere Operation läuft genau diese Zeilen.",
+    same: "Gleicher Pfad wie {list} - der Mechanismus führt diese identisch aus.",
+  },
+};
+
+const caption = captions[lang] || captions["en"];
+
 const scenarios = [
   "reboot",
   "fresh-install",
@@ -49,7 +67,8 @@ type Line = { html: string; scenarios: string };
 const lines: Line[] = [
   {
     html: `<span class="text-[#88c0d0] dark:text-[#0969da]">until</span> <span class="text-[#88c0d0] dark:text-[#0969da]">serving()</span>:`,
-    scenarios: "reboot fresh-install in-place-upgrade dr-restore out-of-place-upgrade migration evacuation",
+    scenarios:
+      "reboot fresh-install in-place-upgrade dr-restore out-of-place-upgrade migration evacuation",
   },
   {
     html: `    <span class="text-[#88c0d0] dark:text-[#0969da]">if</span> local state exists:`,
@@ -73,7 +92,8 @@ const lines: Line[] = [
   },
   {
     html: `    <span class="text-[#88c0d0] dark:text-[#0969da]">else</span>:`,
-    scenarios: "fresh-install dr-restore out-of-place-upgrade migration evacuation",
+    scenarios:
+      "fresh-install dr-restore out-of-place-upgrade migration evacuation",
   },
   {
     html: `        <span class="text-[#88c0d0] dark:text-[#0969da]">if</span> <span class="text-[#88c0d0] dark:text-[#0969da]">fetch_backup()</span>: <span class="text-[#88c0d0] dark:text-[#0969da]">restore</span>(backup)`,
@@ -89,33 +109,69 @@ const lines: Line[] = [
   },
   {
     html: `<span class="text-[#88c0d0] dark:text-[#0969da]">serving()</span>: run app, schedule backups`,
-    scenarios: "reboot fresh-install in-place-upgrade dr-restore out-of-place-upgrade migration evacuation",
+    scenarios:
+      "reboot fresh-install in-place-upgrade dr-restore out-of-place-upgrade migration evacuation",
   },
 ];
+
+// The set of line indices an operation executes.
+const pathOf = (s: string) =>
+  lines
+    .map((l, i) => (l.scenarios.split(" ").includes(s) ? i : -1))
+    .filter((i) => i >= 0);
+
+// Group operations whose executed-line set is identical. The group key is the
+// path itself, so the grouping can never drift from the pseudocode above.
+const classKeyOf = (s: string) => pathOf(s).join(",");
+const membersByKey: Record<string, string[]> = {};
+for (const s of scenarios) (membersByKey[classKeyOf(s)] ||= []).push(s);
+
+const siblingsOf = (s: string) =>
+  membersByKey[classKeyOf(s)]
+    .filter((o) => o !== s)
+    .map((o) => btnLabels[o])
+    .join(", ");
 ---
 
-<div id="ipc-container">
-  <div class="rounded-lg overflow-hidden border border-[#3b4252] dark:border-[#d0d7de] shadow-lg shadow-black/10 dark:shadow-black/30">
+<div
+  id="ipc-container"
+  data-cap-none={caption.none}
+  data-cap-solo={caption.solo}
+  data-cap-same={caption.same}
+>
+  <div
+    class="overflow-hidden rounded-lg border border-[#3b4252] shadow-lg shadow-black/10 dark:border-[#d0d7de] dark:shadow-black/30"
+  >
     <pre
       role="figure"
       aria-label="Bartl decision tree pseudocode"
-      class="bg-[#2e3440] dark:bg-[#ffffff] text-[#d8dee9] dark:text-[#1f2328] font-mono text-xs sm:text-sm md:text-base px-4 sm:px-6 py-5 overflow-x-auto leading-loose"
-    ><code>{lines.map((line) => (
-        <span
-          class="ipc-line block transition-opacity duration-300 border-l-2 border-transparent"
-          data-scenarios={line.scenarios}
-          set:html={line.html + "\n"}
-        />
+      class="overflow-x-auto bg-[#2e3440] px-4 py-5 font-mono text-xs leading-loose text-[#d8dee9] sm:px-6 sm:text-sm md:text-base dark:bg-[#ffffff] dark:text-[#1f2328]"><code>{lines.map((line) => (
+        <span class="ipc-line block transition-opacity duration-300 border-l-2 border-transparent" data-scenarios={line.scenarios} set:html={line.html + "\n"} />
       ))}</code></pre>
   </div>
 
-  <div class="flex flex-wrap gap-2 mt-4">
-    {scenarios.map((s) => (
-      <button class="btn btn-outline btn-sm ipc-btn" data-scenario={s}>
-        {btnLabels[s]}
-      </button>
-    ))}
+  <div class="mt-4 flex flex-wrap gap-2">
+    {
+      scenarios.map((s) => (
+        <button
+          class="btn btn-outline btn-sm ipc-btn"
+          data-scenario={s}
+          data-class={classKeyOf(s)}
+          data-siblings={siblingsOf(s)}
+        >
+          {btnLabels[s]}
+        </button>
+      ))
+    }
   </div>
+
+  <p
+    id="ipc-caption"
+    aria-live="polite"
+    class="text-base-content/70 mt-3 min-h-[1.5em] text-sm"
+  >
+    {caption.none}
+  </p>
 </div>
 
 <script>
@@ -123,9 +179,17 @@ const lines: Line[] = [
   if (container) {
     const lines = container.querySelectorAll<HTMLSpanElement>(".ipc-line");
     const buttons = container.querySelectorAll<HTMLButtonElement>(".ipc-btn");
-    let active: string | null = null;
+    const captionEl =
+      container.querySelector<HTMLParagraphElement>("#ipc-caption");
+    const capNone = container.dataset.capNone || "";
+    const capSolo = container.dataset.capSolo || "";
+    const capSame = container.dataset.capSame || "";
+    let activeBtn: HTMLButtonElement | null = null;
 
     function update() {
+      const active = activeBtn?.dataset.scenario || null;
+      const activeClass = activeBtn?.dataset.class || null;
+
       lines.forEach((line) => {
         const s = line.dataset.scenarios || "";
         if (!active) {
@@ -142,14 +206,30 @@ const lines: Line[] = [
           line.classList.remove("ipc-active-border");
         }
       });
+
+      // Every button that runs the identical path lights up together.
       buttons.forEach((btn) => {
-        btn.classList.toggle("btn-active", btn.dataset.scenario === active);
+        btn.classList.toggle(
+          "btn-active",
+          !!activeClass && btn.dataset.class === activeClass,
+        );
       });
+
+      if (captionEl) {
+        if (!active) {
+          captionEl.textContent = capNone;
+        } else {
+          const siblings = activeBtn?.dataset.siblings || "";
+          captionEl.textContent = siblings
+            ? capSame.replace("{list}", siblings)
+            : capSolo;
+        }
+      }
     }
 
     buttons.forEach((btn) => {
       btn.addEventListener("click", () => {
-        active = btn.dataset.scenario === active ? null : btn.dataset.scenario!;
+        activeBtn = activeBtn === btn ? null : btn;
         update();
       });
     });
