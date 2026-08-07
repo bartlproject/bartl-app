@@ -2,145 +2,92 @@
 
 # Bartl
 
-Ein Entwurfsmuster für den Anwendungslebenszyklus. Eine einzige Startentscheidung auf Grundlage des beobachteten Systemzustands und der Version - der Mechanismus verzweigt anhand dessen, was er vorfindet, nicht anhand der angeforderten Operation.
+Ein Entwurfsmuster für zustandsbehaftete Anwendungen. Beim Start entscheidet ein Mechanismus anhand des vorgefundenen Zustands, eines extern verfügbaren Backups und der Versionen. Er folgt nicht einer vom Betreiber angeforderten Operation.
 
-Website: [bartl.app](https://bartl.app)
+Website: [bartl.app/de](https://bartl.app/de/)
 
-## Das Problem
+## Problem und Geschäftsfragen
 
-Wenn die Produktion ausfällt, entscheiden drei Fragen über das Geschäftsergebnis: Wie viele Kunden betroffen, wie schnell wieder online, wie viele Daten verloren.
+Ein Produktionsausfall wirft drei Geschäftsfragen auf: Wie viele Nutzer sind betroffen, wann ist der Dienst wieder erreichbar und welcher Datenstand läßt sich wiederherstellen?
 
-Die meisten Organisationen können keine dieser Fragen beantworten, bevor die Krise im Gange ist.
+Bartl behandelt den Teil dieser Fragen, der von Anwendung und deklariertem Zustand abhängt. Es ersetzt getrennte Verfahren für Installation, Wiederherstellung und Upgrade durch einen beobachteten Startpfad. Daraus folgt keine Zusage für eine bestimmte Wiederherstellungszeit oder einen bestimmten Datenverlust. Beides hängt auch von Backup-Takt, verfügbarer Zielumgebung, Übertragung und Erreichbarkeit ab.
 
-Bartl macht den App- und Zustandsmechanismus hinter den letzten beiden Antworten reproduzierbar. Die tatsächlichen Werte hängen zusätzlich von Backup-Takt, Zielbereitstellung, Transfer und Zugangspfad ab. Kombiniert mit vervielfachter Single Tenancy - ein Kunde, ein Stack - schrumpft die erste Antwort auf ihr Minimum.
+## Vertrag mit vier Eingaben
 
-Nicht durch Hinzufügen von etwas - sondern durch Ersetzen von fünf getrennten Verfahren durch einen einheitlichen Mechanismus. Die Operationen unterscheiden sich tatsächlich in ihren Eingaben, aber der Mechanismus, der sie ausführt, ist identisch. Er betrachtet, welcher State existiert und welche Version die Engine hat, und tut das Richtige.
+Der Startmechanismus beruht auf vier Eingaben, die das Produkt und seine Umgebung bereitstellen.
 
-## Die Prämissen
+| Eingabe                                         | Bedeutung                                                                                          |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Festgeschriebenes Anwendungsrelease oder Engine | Unveränderliches Release einschließlich produktbezogener Migrationslogik                           |
+| Deklariertes Zustandsinventar                   | Portabler veränderlicher Zustand einschließlich Zustandsversion                                    |
+| Dauerhafter, unabhängiger Store                 | Vom Quellbetrieb unabhängiger Speicher mit einem vollständig veröffentlichten und geprüften Backup |
+| Zielkonfiguration                               | Vom Ziel bereitgestellte Konfiguration wie Endpunkt und Zugangsdaten                               |
 
-Fünf Prämissen bestimmen das Design:
+Für die WordPress-Referenz ist das Zustandsinventar Datenbank und Uploads. Zum Anwendungsrelease gehören WordPress-Core, Plugins und Themes. Endpunkt und Zugangsdaten liefert die Zielumgebung. Diese Trennung ist Teil des Vertrags: Ein Image ersetzt weder Datenbank noch Uploads, und Zugangsdaten gehören nicht in das Backup-Format.
 
-1. Software liefert Wert nur in der Produktion.
-2. Veränderung ist unvermeidlich.
-3. Fehler sind unvermeidlich.
-4. Menschen können Veränderungen nicht zuverlässig anwenden.
-5. Jedes Glied in der Kette zwischen Absicht und Ergebnis verursacht Kosten: kognitive Last, Fehleroberfläche, Seiteneffekte.
+Aus diesen vier Eingaben leitet der Mechanismus drei Beobachtungen für seine Verzweigung ab: Existiert gültiger lokaler Zustand? Ist ein vollständig veröffentlichtes und geprüftes Backup verfügbar? Wie verhält sich die Engine-Version zur Zustandsversion?
 
-Diese beseitigen jeden Ausweg: Man kann nicht alle Fehler verhindern (muß für Wiederherstellung entwerfen), man kann keine sorgfältigen manuellen Verfahren anwenden (muß automatisieren), man kann keine Schicht hinzufügen, um es zu verwalten (muß die Kette verkürzen). Was alle fünf Filter überlebt: vollautomatisierte App- und Zustandswiederherstellung innerhalb einer möglichst kurzen Wirkungskette.
+## Beobachteter Startpfad
 
-Und wir können - weil Anwendungen, Infrastruktur und beider Betrieb jetzt als Code ausdrückbar sind. Versionskontrolliert, testbar, reproduzierbar. Das war das letzte fehlende Stück.
-
-## Die Entdeckung
-
-Und wenn man darüber nachdenkt, was DR tatsächlich ist und wie man es automatisiert: DR = von Grund auf erstellen + Daten wiederherstellen. Das liefert automatisierte Installation gratis mit. Versionserkennung hinzufügen, und man hat Upgrades. Auf einem anderen Server ausführen, und man hat Migration.
-
-Nun das Backup portabel halten - keine anbieterspezifischen Snapshots, nur ein Blob - und man kann auf jedem kompatiblen Ziel wiederherstellen, dessen Runtime-Voraussetzungen erfüllt sind.
-
-Katastrophe, Kostendruck, Vertragsende, Neugier: Der Grund für den Wechsel ändert Bartls Restore-Operation nicht. Der umgebende Pfad sehr wohl - Zielbereitstellung, Transfer, Erreichbarkeit und Cutover bestimmen die Ende-zu-Ende-Dauer. Bartl liefert den App- und Zustandsmechanismus, den Wechselfähigkeit benötigt; es ist nicht der vollständige Providerwechsel.
-
-## Der Mechanismus
-
-Das Beste: der Entscheidungsbaum paßt in 9 Zeilen.
+Der Mechanismus prüft zuerst den lokalen Zustand. Ist er vorhanden, vergleicht er Engine- und Zustandsversion. Ist keiner vorhanden, versucht er ein externes Backup zu beziehen und zu prüfen. Erst ohne ein gültiges Backup initialisiert er einen neuen Zustand.
 
 ```python
 until serving():
-    if local state exists:
-        engine version vs state version:
-            equal:    serving()
-            engine >: migrate()
-            engine <: abort("downgrade")
-    else:
-        if fetch_backup(): restore(backup)
-        else:              init()
-
-serving(): run app, schedule backups
+    if local_state_exists():
+        if engine_version == state_version: serving()
+        elif engine_version > state_version: migrate()
+        else: abort("downgrade")
+    elif valid_external_backup(): restore()
+    else: init()
 ```
 
-Drei Fakten bestimmen die Operation: Existiert lokaler State, ist ein gültiges Backup verfügbar (fetch_backup() umfaßt Abruf und Integritätsprüfung), und wie verhält sich die Engine-Version zur State-Version. Jeder Zweig außer serving() und abort() verändert den State und springt zurück.
+Nach `init()`, `restore()` oder `migrate()` wird der Zustand erneut beobachtet. Der Code verzweigt damit nach Tatsachen am Ziel, nicht nach Labels wie „Restore“, „Upgrade“ oder „Migration“. Ein Fehlschlag wird nicht dadurch geheilt, daß ein anderer Operationsname gewählt wird. Die Anwendung muß erkennen können, ob lokaler Zustand gültig ist; nicht jede inhaltliche Korruption ist allein aus seiner Existenz ableitbar.
 
-- Neustart: State existiert, gleich -> serving().
-- Neuinstallation: kein State, kein Backup -> init() -> State erstellt -> gleich -> serving().
-- In-place Upgrade: State existiert, Engine > -> migrate() -> gleich -> serving().
-- DR Restore: kein State, Backup -> restore() -> State erstellt -> gleich -> serving().
-- Out-of-place Upgrade: kein State, Backup -> restore() -> State erstellt -> Engine > -> migrate() -> gleich -> serving(). Wählt man diesen Weg statt In-place Upgrade (eine geschäftliche Entscheidung, keine technische Anforderung), wird bei jedem Upgrade der Restore-Pfad durchlaufen. Nicht vom Muster vorgeschrieben - nur eine Eigenschaft, die ohne zusätzliche Kosten entsteht.
-- Migration: wie DR Restore, anderer Server. Dieselbe Operation.
-- Evakuierung innerhalb Bartls: wie DR Restore, anderer Anbieter. Dieselbe App- und Zustandsoperation.
-- Downgrade-Versuch: State existiert, Engine < -> abort(). Alten Code gegen ein neues Schema laufen zu lassen ist gefährlich - die Branche hat sich aus gutem Grund auf Fix-Forward geeinigt. Bartl verhindert das Gefährliche. Muß man zurück, Restore aus dem Backup vor dem Upgrade + Neustart: das ist der DR-Pfad, bereits eine erstklassige Operation (setzt voraus, daß das Backup vor dem Upgrade erstellt wurde - durch Konvention erzwungen, nicht durch den Mechanismus).
+## Folgerungen aus dem Mechanismus
 
-Dies deckt die zustandsverändernden Operationen innerhalb des Bartl-Musters ab. Explizit außerhalb des Scope: Infrastruktur (Skalierung und Provisionierung), Nutzer- und Abhängigkeitserreichbarkeit, Identität und Berechtigung, Service-Cutover sowie Runtime-Belange wie Monitoring und Zertifikatsrotation. Diese stellen Voraussetzungen her, beobachten oder erhalten das System, bewegen aber keinen App-Zustand.
+Ein Neustart führt bei gleichem, gültigem lokalem Zustand direkt zum Dienst. Ohne lokalen Zustand führt ein gültiges externes Backup über `restore()` zurück zum Versionsvergleich. Fehlt beides, erzeugt `init()` einen neuen Zustand.
 
-Voraussetzungen (Datenbank nimmt Verbindungen an, Speicher eingehängt, Netzwerk verfügbar) sind Aufgabe der Runtime, nicht von Bartl. Jede Runtime erzwingt Reihenfolge bereits nativ: depends_on in Compose, initContainers in K8s, After= in systemd. Bartl braucht erfüllte Voraussetzungen. Wie sie erfüllt werden, ist nicht seine Sache.
+Ein Upgrade mit neuerer Engine benötigt produktbezogene Migrationslogik. Bartl stellt den Entscheidungspunkt bereit, aber keine universelle Migration. Eine ältere Engine als der Zustand bricht ab. Ein Rückweg erfordert einen geeigneten Sicherungsstand vor dem Upgrade und folgt dann dem Wiederherstellungspfad.
 
-Fehlerbehandlung: Init(), Restore() und Migrate() können mittendrin fehlschlagen und partiellen State hinterlassen. Die Loop-Struktur ist der Wiederherstellungsmechanismus: beim nächsten Start wertet der Loop dieselben drei Fakten neu aus und setzt dort fort, wo abgebrochen wurde. Was der Loop nicht kann, ist Korruption innerhalb von ansonsten gültig aussehendem State zu erkennen - das ist anwendungsspezifische Produktarbeit (siehe Punkt 21 unten).
+Wiederherstellung und Migration können denselben Anwendungs- und Zustandspfad nutzen, aber nur unter zwei Bedingungen: Das Ziel ist mit der Anwendung kompatibel, und ein gültiger Zustand ist extern verfügbar. Bei einer Migration ändert sich das Ziel, nicht die Bedeutung von Datenbank, Uploads, Image-Inhalt oder Konfiguration.
 
-## Was folgt
+Daraus folgen ein einheitlicher Ausführungspfad und weniger unterschiedliche Betriebsabläufe für diesen Ausschnitt. Daraus folgen nicht automatisch Wiederherstellungswerte, portable Backups, korrekte Migrationen oder eine vollständige Betriebsorganisation. Diese Eigenschaften müssen jeweils nachgewiesen und betrieben werden.
 
-### Aus dem Muster
+## Anforderungen an das Produkt
 
-Strukturelle Eigenschaften:
+Damit das Muster funktioniert, muß das Produkt mindestens Folgendes liefern:
 
-1. Einheitliche State-Maschinerie (ein Mechanismus für alle produktiven Operationen)
-2. Automatisierte Installation (DR erzwingt es)
-3. Automatisiertes DR (das Designziel)
-4. Verzweigung anhand des beobachteten Systemzustands statt der deklarierten Operation
-5. Migration = derselbe Mechanismus, anderer Server
+- deklarieren, welche Datenbanken, Verzeichnisse und Metadaten den veränderlichen Zustand bilden;
+- Zustand versionieren und die Version sicher ermitteln;
+- eine neue Zustandsversion mit getesteter, produktbezogener Migrationslogik erzeugen;
+- ein Backup-Format erstellen und dessen Wiederherstellbarkeit prüfen;
+- einen frischen, leeren Zustand eindeutig initialisieren;
+- Fehler und teilweise erzeugten Zustand so behandeln, daß der nächste Start wieder eine belastbare Entscheidung treffen kann.
 
-Erwarteter Nutzen (abhängig von Nutzungsmustern):
+Die Runtime stellt erfüllte Voraussetzungen bereit, etwa erreichbare Datenbank, Speicher und Netzwerk. Bartl ersetzt diese Voraussetzungen nicht.
 
-6. Verkürzte Restore-Dauer innerhalb des App- und Zustandsmechanismus (automatisierte Wiederherstellung ohne manuelle Schritte innerhalb dieses Pfades)
-7. Vertrauenswürdige Backups (Restore-Pfad wird bei jedem Out-of-place Upgrade durchlaufen - Einschränkung: In-place Upgrades durchlaufen ihn nicht)
-8. Reduzierte kognitive Last (ein Verfahren zu lernen statt getrennter Install-/Restore-/Upgrade-Verfahren)
-9. Wachsendes Betriebsvertrauen (derselbe Codepfad läuft für Install, Upgrade und Restore - wiederholte Ausführung baut Vertrauen in den Mechanismus auf)
+## Grenzen des Musters
 
-Erfordert Konventionsentscheidungen:
+Bartl verantwortet Anwendungsrelease, deklarierten Zustand sowie den Pfad für Wiederherstellung, Initialisierung und Migration. Es nutzt die Endpunkt- und Zugangskonfiguration, die das Ziel bereitstellt.
 
-10. Portable Backups (erfordert ein anbieterunabhängiges Blob-Format - z.B. Datenbankdumps + Dateisystem-Tar, keine anbieterspezifischen Snapshots)
-11. App- und Zustandsevakuierung (abhängig von portablem Blob + keine anbieterspezifischen APIs im Bartl-Pfad)
-12. App- und Zustandsportabilität - die "dünne Taille": anwendungsspezifischer Blob darüber, Standardplattform darunter (Linux/Compose, K8s). Der Blob gehört einem, die Plattform ist Massenware. Daraus folgt ein notwendiger Baustein der Wechselfähigkeit, nicht Souveränität an sich. Ein vollständiger Providerwechsel erfordert zusätzlich einen bereits außerhalb des Quellproviders verfügbaren Export, Zielprovisionierung, Nutzer- und Abhängigkeitserreichbarkeit, Identitäten und Berechtigungen, einen geregelten Service-Cutover sowie eine vom betroffenen Provider unabhängige Entscheidung. Diese umgebende Orchestrierung liegt außerhalb von Bartls Scope.
+Außerhalb von Bartl liegen die unabhängige Wechselentscheidung, die Qualifizierung eines Providers, Zielprovisionierung, der Betrieb eines neutralen Speichers, Erreichbarkeit von Identitäten und Abhängigkeiten, DNS und TLS, eine stabile Dienstadresse, Cutover, Abnahme und Rollback-Orchestrierung. Bartl allein macht weder Nutzer noch Abhängigkeiten erreichbar.
 
-Erfordert Produktarbeit:
+## Einordnung in einen Providerwechsel
 
-13. Versionserkennungslogik
-14. Migrationsskripte (Produktcode, nicht Bartl-Code)
-15. State-Deklaration (welche Pfade und Datenbanken eine Neuinstallation überleben)
-16. Backup-Skript (State in einen Blob sichern)
-17. Backup-Planung, -Rotation, -Aufbewahrung
-18. Backup-Verifikation (Prüfsummen, Roundtrip-Tests)
-19. Multi-Service-Konsistenz beim Backup (Anwendungsebene)
-20. Durchsetzung der Voraussetzungen (an Runtime delegiert)
-21. Erkennung und Wiederherstellung von partiellem State (fehlgeschlagenes Init/Restore/Migrate mit beschädigtem State)
+Ein Providerwechsel ist ein Ende-zu-Ende-Vorhaben. Der Bartl-Pfad ist darin ein notwendiger Baustein für Anwendung und Zustand, aber nicht sein Ersatz.
 
-### Aus dem Muster + vervielfachter Single Tenancy
+| Abschnitt                       | Ergebnis                                                                    | Zuständigkeit              |
+| ------------------------------- | --------------------------------------------------------------------------- | -------------------------- |
+| Entscheidung und Qualifizierung | Unabhängige Entscheidung und geeignetes Ziel                                | Betreiber                  |
+| Ziel vorbereiten                | Provisionierte Runtime, Netzwerk, Identität, Speicher und Konfiguration     | Betreiber und Zielumgebung |
+| Zustand bereitstellen           | Gültiges Backup in einem neutral betriebenen, erreichbaren Speicher         | Betreiber                  |
+| Anwendung und Zustand starten   | Wiederherstellung, Initialisierung oder Migration nach beobachtetem Zustand | Bartl und Produktlogik     |
+| Dienst umschalten               | Stabile Adresse, DNS/TLS, Cutover, Abnahme und Rollback                     | Betreiber                  |
 
-Warum Single Tenancy jetzt tragfähig ist: die Kosten, die Multi-Tenancy unvermeidlich machten, waren der Betrieb - jeder zusätzliche Stack bedeutete mehr manuelle Arbeit, mehr Stammwissen, mehr Fehlerquellen. Wenn der Mechanismus Code ist - einmal getestet, N-mal angewandt - skalieren diese Kosten nicht mehr mit der Anzahl der Stacks. Infrastrukturkosten skalieren weiterhin (Cloud ist pro Einheit teurer als On-Premises), aber sie waren nie die dominierenden Kosten. Der Betrieb war es.
+Die Tabelle trennt bewusst den wiederverwendbaren Startmechanismus vom Wechselverfahren. Sie verspricht weder einen vollständigen Providerwechsel noch eine automatische Erreichbarkeit oder Komplexitätsfreiheit.
 
-Strukturelle Eigenschaften:
+## Referenz und Nachweisgrenzen
 
-22. Minimierter Blast Radius (ein Fehler = ein Kunde)
-23. Datenisolation by Design
-24. Getrennte Compliance-Grenzen pro Kunde
-25. Einfaches Onboarding (Stack hochfahren)
-26. Einfaches Offboarding (Stack und seine Backups löschen)
-27. Agilität pro Kunde (Version Pinning, Rollbacks)
-28. Migrationen pro Kunde (kein Big Bang, schrittweiser Rollout)
+Die ausführbare Referenz [bartl-wordpress](https://codeberg.org/bartlapp/bartl-wordpress) macht den Vertrag für WordPress inspizierbar: Zustand, Image-Inhalt, Zielkonfiguration und die Startentscheidung können im Code nachvollzogen werden.
 
-Erwarteter Nutzen (abhängig von Fleet-Tooling):
-
-29. Lineares operatives Skalieren (der N-te Stack fügt operative Arbeit hinzu, nicht kognitive Komplexität - erfordert Fleet-Tooling zur Konsistenzwahrung; ohne es bedeuten N Stacks N-mal den manuellen Aufwand)
-30. Belegschaft: kurze Kette (Prämisse 5) plus kleiner Scope (Single Tenancy) machen jeden Stack für eine Person erfaßbar. Keines allein reicht aus. Wo beides gilt, ist das erforderliche Qualifikationsniveau ein Fachanwendungsverantwortlicher, kein Platform-Engineering-Team.
-31. Talent-Onboarding/-Offboarding (erlernbarer Scope + klare Zuständigkeit = schnelle Einarbeitung - erfordert sowohl kurze Kette als auch kleinen Scope)
-
-Erfordert Arbeit:
-
-Bartl-spezifisch:
-
-32. Channels / Fleet Management
-33. Bless/Tag Workflow
-34. Forge-Runner-Infrastruktur
-35. Instanz-Repos pro Kunde
-
-Standardmäßige operative Belange (nicht durch Bartl eingeführt):
-
-36. Monitoring-Aggregation über N Stacks
-37. Secret Management
-38. Infrastruktur-Provisionierung
+Die Referenz ist kein öffentlicher Nachweis eines Providerwechsels. Sie belegt auch keine universelle Anwendbarkeit, keine festen RPO- oder RTO-Werte und keine vollständige Migrationsfähigkeit für andere Produkte. Diese Nachweise entstehen erst aus dem jeweiligen Produkt, der Zielumgebung, den Backups und geübten Ende-zu-Ende-Verfahren.

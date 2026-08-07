@@ -25,7 +25,7 @@ export const ui = {
   },
   de: {
     "nav.github": "GitHub",
-    "nav.derivation": "Derivation",
+    "nav.derivation": "Herleitung",
     "nav.darkMode": "Dunkelmodus umschalten",
     "nav.language": "Sprache",
     "footer.copyright": "Florian Kessler",

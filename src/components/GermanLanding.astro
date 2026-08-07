@@ -1,0 +1,539 @@
+---
+// SPDX-License-Identifier: Apache-2.0
+import InteractivePseudoCode from "@/components/InteractivePseudoCode.astro";
+
+const referenceUrl = "https://codeberg.org/bartlapp/bartl-wordpress";
+const linkFocus =
+  "focus-visible:outline-primary focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4";
+---
+
+<div class="overflow-hidden">
+  <section aria-labelledby="landing-title" class="border-base-300 border-b">
+    <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8 lg:py-32">
+      <div class="max-w-4xl">
+        <p
+          class="text-primary mb-6 font-mono text-sm font-semibold tracking-widest uppercase"
+        >
+          Beobachten statt anfordern
+        </p>
+        <h1
+          id="landing-title"
+          class="text-4xl leading-tight font-medium text-balance sm:text-5xl lg:text-6xl"
+        >
+          Ein getesteter Startpfad für Install, Restore und Migration.
+        </h1>
+        <p
+          class="text-base-content/70 mt-6 max-w-3xl text-lg leading-relaxed sm:text-xl"
+        >
+          Bartl wählt anhand des vorgefundenen Zustands zwischen
+          Initialisierung, Wiederherstellung, Migration und Start. Das trägt,
+          wenn Release, portabler Zustand, externer Speicher und
+          Zielkonfiguration klar definiert, erreichbar und geprüft sind.
+        </p>
+        <div class="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <a
+            href="#mechanismus"
+            class="btn btn-primary focus-visible:outline-primary focus-visible:outline-2 focus-visible:outline-offset-4"
+          >
+            Mechanismus ansehen
+          </a>
+          <a
+            href={referenceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Ausführbare WordPress-Referenz auf Codeberg öffnen (neuer Tab)"
+            class="btn btn-outline focus-visible:outline-primary focus-visible:outline-2 focus-visible:outline-offset-4"
+          >
+            Referenz auf Codeberg
+          </a>
+        </div>
+        <a
+          href="/de/derivation/"
+          class:list={[
+            "link text-base-content/70 hover:text-base-content mt-6 inline-block text-sm underline-offset-4",
+            linkFocus,
+          ]}
+        >
+          Vertrag und Herleitung vollständig lesen
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section
+    aria-labelledby="outcome-title"
+    class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8"
+  >
+    <div class="grid gap-10 lg:grid-cols-3 lg:gap-16">
+      <div>
+        <p
+          class="text-base-content/50 font-mono text-xs font-semibold tracking-widest uppercase"
+        >
+          Ergebnis
+        </p>
+        <h2 id="outcome-title" class="mt-3 text-3xl leading-tight sm:text-4xl">
+          Weniger getrennte App-Prozeduren, eine prüfbare Entscheidung.
+        </h2>
+      </div>
+      <div class="space-y-6 text-lg leading-relaxed lg:col-span-2">
+        <p>
+          Neustart, Erstinstallation, Restore und produktbezogene Migration
+          beginnen mit derselben Zustandsprüfung. Application- und Platform
+          Engineering können diesen Ausschnitt wiederholt ausführen, seine Logs
+          und Abbruchbedingungen prüfen und Backups gegen denselben Vertrag
+          testen.
+        </p>
+        <p class="text-base-content/70">
+          Der gemeinsame Pfad ersetzt keine erreichbare Zielumgebung, kein
+          belastbares Backup und keine getestete Migrationslogik. Er macht diese
+          Voraussetzungen sichtbar, statt sie hinter Operationsnamen zu
+          verbergen.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section
+    aria-labelledby="contract-title"
+    class="bg-base-200/50 border-base-300 border-y"
+  >
+    <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+      <div class="max-w-3xl">
+        <p
+          class="text-primary font-mono text-xs font-semibold tracking-widest uppercase"
+        >
+          Startvertrag
+        </p>
+        <h2 id="contract-title" class="mt-3 text-3xl leading-tight sm:text-4xl">
+          Vier Eingaben müssen stimmen.
+        </h2>
+        <p class="text-base-content/70 mt-4 text-lg leading-relaxed">
+          Der Mechanismus ist nur so belastbar wie die Grenzen zwischen Release,
+          Zustand, Ablage und Ziel.
+        </p>
+      </div>
+
+      <ol class="border-base-300 mt-10 border-t">
+        <li
+          class="border-base-300 grid gap-4 border-b py-6 sm:grid-cols-3 sm:gap-8"
+        >
+          <div class="flex items-start gap-4">
+            <span aria-hidden="true" class="text-primary font-mono text-sm"
+              >01</span
+            >
+            <h3 class="text-lg">Unveränderliches Release</h3>
+          </div>
+          <p class="text-base-content/70 leading-relaxed sm:col-span-2">
+            Ein versioniertes Anwendungsartefakt. Bei WordPress liegen Core,
+            Plugins und Themes im Image, nicht im wiederherzustellenden Zustand.
+          </p>
+        </li>
+        <li
+          class="border-base-300 grid gap-4 border-b py-6 sm:grid-cols-3 sm:gap-8"
+        >
+          <div class="flex items-start gap-4">
+            <span aria-hidden="true" class="text-primary font-mono text-sm"
+              >02</span
+            >
+            <h3 class="text-lg">Deklarierter portabler Zustand</h3>
+          </div>
+          <p class="text-base-content/70 leading-relaxed sm:col-span-2">
+            Vollständigkeit, Format, Integrität und Zustandsversion sind
+            explizit. In der Referenz sind das WordPress-Datenbank und Uploads.
+          </p>
+        </li>
+        <li
+          class="border-base-300 grid gap-4 border-b py-6 sm:grid-cols-3 sm:gap-8"
+        >
+          <div class="flex items-start gap-4">
+            <span aria-hidden="true" class="text-primary font-mono text-sm"
+              >03</span
+            >
+            <h3 class="text-lg">Quellunabhängiger dauerhafter Speicher</h3>
+          </div>
+          <p class="text-base-content/70 leading-relaxed sm:col-span-2">
+            Ein vom Quellbetrieb unabhängiger Ablageort hält das vollständig
+            veröffentlichte und geprüfte Backup erreichbar. Seine Verfügbarkeit
+            ist eine Voraussetzung, keine Leistung des Startpfads.
+          </p>
+        </li>
+        <li
+          class="border-base-300 grid gap-4 border-b py-6 sm:grid-cols-3 sm:gap-8"
+        >
+          <div class="flex items-start gap-4">
+            <span aria-hidden="true" class="text-primary font-mono text-sm"
+              >04</span
+            >
+            <h3 class="text-lg">Konfiguration des Ziels</h3>
+          </div>
+          <p class="text-base-content/70 leading-relaxed sm:col-span-2">
+            Das Ziel liefert erreichbare Endpunkte und Zugangsdaten. Die
+            Anwendung bindet sie als Konfiguration ein; sie gehören weder ins
+            Image noch ins Backup.
+          </p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section
+    id="mechanismus"
+    aria-labelledby="mechanism-title"
+    class="mx-auto max-w-6xl scroll-mt-24 px-4 py-16 sm:px-6 sm:py-24 lg:px-8"
+  >
+    <div class="max-w-3xl">
+      <p
+        class="text-primary font-mono text-xs font-semibold tracking-widest uppercase"
+      >
+        Observed State
+      </p>
+      <h2 id="mechanism-title" class="mt-3 text-3xl leading-tight sm:text-4xl">
+        Der Zustand wählt den Pfad, nicht die angeforderte Operation.
+      </h2>
+      <p class="text-base-content/70 mt-4 text-lg leading-relaxed">
+        Der Start prüft lokalen Zustand, ein gültiges externes Backup sowie
+        Engine- und Zustandsversion. Nach Initialisierung, Restore oder
+        Migration beobachtet er erneut, bis die Anwendung dienen kann oder
+        kontrolliert abbricht.
+      </p>
+    </div>
+
+    <div class="mt-10">
+      <InteractivePseudoCode lang="de" />
+    </div>
+
+    <div class="mt-12">
+      <h3 class="text-xl">So liest sich der Pfad</h3>
+      <dl class="border-base-300 mt-4 border-t">
+        <div
+          class="border-base-300 grid gap-2 border-b py-5 sm:grid-cols-3 sm:gap-8"
+        >
+          <dt class="font-mono text-sm font-semibold">Reboot</dt>
+          <dd class="text-base-content/70 sm:col-span-2">
+            Gültiger lokaler Zustand und gleiche Version führen direkt zum
+            Serving.
+          </dd>
+        </div>
+        <div
+          class="border-base-300 grid gap-2 border-b py-5 sm:grid-cols-3 sm:gap-8"
+        >
+          <dt class="font-mono text-sm font-semibold">Fresh Install</dt>
+          <dd class="text-base-content/70 sm:col-span-2">
+            Nur wenn kein lokaler Zustand vorliegt und eindeutig kein gültiges
+            externes Backup verfügbar ist, initialisiert der Pfad neuen Zustand.
+          </dd>
+        </div>
+        <div
+          class="border-base-300 grid gap-2 border-b py-5 sm:grid-cols-3 sm:gap-8"
+        >
+          <dt class="font-mono text-sm font-semibold">Restore / Migration</dt>
+          <dd class="text-base-content/70 sm:col-span-2">
+            Ohne lokalen Zustand wird ein gültiges externes Backup
+            wiederhergestellt. Für Migration muß das Ziel zusätzlich mit
+            Anwendung, Zustand und Konfiguration kompatibel sein.
+          </dd>
+        </div>
+        <div
+          class="border-base-300 grid gap-2 border-b py-5 sm:grid-cols-3 sm:gap-8"
+        >
+          <dt class="font-mono text-sm font-semibold">Upgrade</dt>
+          <dd class="text-base-content/70 sm:col-span-2">
+            Ist die Engine neuer als der Zustand, läuft die getestete,
+            produktspezifische Migrationslogik. Bartl liefert dafür keine
+            universelle Migration.
+          </dd>
+        </div>
+        <div
+          class="border-base-300 grid gap-2 border-b py-5 sm:grid-cols-3 sm:gap-8"
+        >
+          <dt class="font-mono text-sm font-semibold">Downgrade</dt>
+          <dd class="text-base-content/70 sm:col-span-2">
+            Ist die Engine älter als der Zustand, bricht der Start ab. Ein
+            Rückweg benötigt einen dafür geeigneten Sicherungsstand.
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <section
+    aria-labelledby="reference-title"
+    class="bg-neutral text-neutral-content"
+  >
+    <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+      <div class="grid gap-12 lg:grid-cols-2 lg:gap-16">
+        <div>
+          <p
+            class="text-neutral-content/80 font-mono text-xs font-semibold tracking-widest uppercase"
+          >
+            Ausführbare Referenz
+          </p>
+          <h2
+            id="reference-title"
+            class="mt-3 text-3xl leading-tight sm:text-4xl"
+          >
+            bartl-wordpress macht den Vertrag inspizierbar.
+          </h2>
+          <p class="text-neutral-content/70 mt-5 text-lg leading-relaxed">
+            Das Repository zeigt die Startentscheidung, den Backup- und
+            Restore-Pfad, Integritätsprüfungen und das Abbruchverhalten. Es kann
+            auf einem kompatiblen Docker-Host lokal ausgeführt werden.
+          </p>
+          <a
+            href={referenceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="bartl-wordpress auf Codeberg prüfen und ausführen (neuer Tab)"
+            class="btn btn-primary mt-8 focus-visible:outline-2 focus-visible:outline-offset-4"
+          >
+            Code und Runbook öffnen
+          </a>
+        </div>
+
+        <div
+          class="border-neutral-content/20 border-t lg:border-t-0 lg:border-l lg:pl-12"
+        >
+          <h3 class="mt-8 text-xl lg:mt-0">Konkretes Zustandsinventar</h3>
+          <dl class="mt-6 space-y-6">
+            <div>
+              <dt class="text-neutral-content/80 font-mono text-sm">
+                Mutable State
+              </dt>
+              <dd class="mt-1">
+                WordPress-Datenbank und <code>wp-content/uploads</code>
+              </dd>
+            </div>
+            <div>
+              <dt class="text-neutral-content/80 font-mono text-sm">
+                Immutable Image
+              </dt>
+              <dd class="mt-1">WordPress-Core, Plugins und Themes</dd>
+            </div>
+            <div>
+              <dt class="text-neutral-content/80 font-mono text-sm">
+                Target Configuration
+              </dt>
+              <dd class="mt-1">Endpunkte und Zugangsdaten des Ziels</dd>
+            </div>
+          </dl>
+          <p
+            class="text-neutral-content/80 border-neutral-content/20 mt-8 border-t pt-6 text-sm leading-relaxed"
+          >
+            Die Referenz ist kein öffentlicher Nachweis eines Providerwechsels
+            und belegt keine festen RPO- oder RTO-Werte.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section
+    aria-labelledby="scope-title"
+    class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8"
+  >
+    <div class="max-w-3xl">
+      <p
+        class="text-primary font-mono text-xs font-semibold tracking-widest uppercase"
+      >
+        Klare Systemgrenze
+      </p>
+      <h2 id="scope-title" class="mt-3 text-3xl leading-tight sm:text-4xl">
+        Bartl ist App + Zustand, nicht der ganze Providerwechsel.
+      </h2>
+      <p class="text-base-content/70 mt-4 text-lg leading-relaxed">
+        Bartl verantwortet Anwendungsrelease, deklarierten Zustand, den
+        Restore-/Init-/Migrationspfad und die Einbindung der vom Ziel
+        gelieferten Endpunkte und Zugangsdaten in die Anwendungskonfiguration.
+      </p>
+    </div>
+
+    <ol
+      class="mt-12 space-y-3"
+      aria-label="Schritte eines breiteren Providerwechsels"
+    >
+      <li
+        class="border-base-300 grid gap-3 border p-5 sm:grid-cols-3 sm:items-center sm:gap-8"
+      >
+        <div class="flex items-center gap-3">
+          <span
+            aria-hidden="true"
+            class="text-base-content/40 font-mono text-sm">01</span
+          >
+          <h3 class="text-base">Entscheiden und qualifizieren</h3>
+        </div>
+        <p class="text-base-content/70 text-sm sm:col-span-2">
+          Unabhängige Wechselentscheidung und Providerqualifizierung
+          <span class="badge badge-ghost ml-2">außerhalb Bartl</span>
+        </p>
+      </li>
+      <li
+        class="border-base-300 grid gap-3 border p-5 sm:grid-cols-3 sm:items-center sm:gap-8"
+      >
+        <div class="flex items-center gap-3">
+          <span
+            aria-hidden="true"
+            class="text-base-content/40 font-mono text-sm">02</span
+          >
+          <h3 class="text-base">Ziel bereitstellen</h3>
+        </div>
+        <p class="text-base-content/70 text-sm sm:col-span-2">
+          Provisionierung sowie Erreichbarkeit von Identitäten und
+          Abhängigkeiten
+          <span class="badge badge-ghost ml-2">außerhalb Bartl</span>
+        </p>
+      </li>
+      <li
+        class="border-base-300 grid gap-3 border p-5 sm:grid-cols-3 sm:items-center sm:gap-8"
+      >
+        <div class="flex items-center gap-3">
+          <span
+            aria-hidden="true"
+            class="text-base-content/40 font-mono text-sm">03</span
+          >
+          <h3 class="text-base">Zustand bereitstellen</h3>
+        </div>
+        <p class="text-base-content/70 text-sm sm:col-span-2">
+          Neutralen Speicher betreiben und ein gültiges Backup erreichbar halten
+          <span class="badge badge-ghost ml-2">außerhalb Bartl</span>
+        </p>
+      </li>
+      <li
+        class="border-primary bg-primary/10 grid gap-3 border-2 p-5 sm:grid-cols-3 sm:items-center sm:gap-8"
+      >
+        <div class="flex items-center gap-3">
+          <span aria-hidden="true" class="text-primary font-mono text-sm"
+            >04</span
+          >
+          <h3 class="text-base">App + Zustand starten</h3>
+        </div>
+        <p class="sm:col-span-2">
+          Release starten, Konfiguration binden und nach beobachtetem Zustand
+          initialisieren, wiederherstellen oder migrieren
+          <span class="badge badge-primary ml-2">Bartl</span>
+        </p>
+      </li>
+      <li
+        class="border-base-300 grid gap-3 border p-5 sm:grid-cols-3 sm:items-center sm:gap-8"
+      >
+        <div class="flex items-center gap-3">
+          <span
+            aria-hidden="true"
+            class="text-base-content/40 font-mono text-sm">05</span
+          >
+          <h3 class="text-base">Dienst umschalten</h3>
+        </div>
+        <p class="text-base-content/70 text-sm sm:col-span-2">
+          Stabile Dienstadresse, DNS/TLS und Cutover herstellen
+          <span class="badge badge-ghost ml-2">außerhalb Bartl</span>
+        </p>
+      </li>
+      <li
+        class="border-base-300 grid gap-3 border p-5 sm:grid-cols-3 sm:items-center sm:gap-8"
+      >
+        <div class="flex items-center gap-3">
+          <span
+            aria-hidden="true"
+            class="text-base-content/40 font-mono text-sm">06</span
+          >
+          <h3 class="text-base">Abnehmen oder zurückrollen</h3>
+        </div>
+        <p class="text-base-content/70 text-sm sm:col-span-2">
+          Abnahme und Rollback orchestrieren
+          <span class="badge badge-ghost ml-2">außerhalb Bartl</span>
+        </p>
+      </li>
+    </ol>
+  </section>
+
+  <section
+    aria-labelledby="audience-title"
+    class="bg-base-200/50 border-base-300 border-t"
+  >
+    <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+      <div class="max-w-3xl">
+        <p
+          class="text-primary font-mono text-xs font-semibold tracking-widest uppercase"
+        >
+          Für wen das paßt
+        </p>
+        <h2 id="audience-title" class="mt-3 text-3xl leading-tight sm:text-4xl">
+          Für Application- und Platform Engineering zustandsbehafteter
+          Anwendungen.
+        </h2>
+      </div>
+
+      <div class="mt-10 grid gap-10 lg:grid-cols-2 lg:gap-16">
+        <div>
+          <h3 class="text-xl">Gute Ausgangslage</h3>
+          <ul class="mt-5 space-y-4">
+            <li class="border-base-300 border-l-2 pl-4">
+              Der veränderliche Zustand läßt sich vollständig deklarieren und
+              versionieren.
+            </li>
+            <li class="border-base-300 border-l-2 pl-4">
+              Release, Zustand und vom Ziel gelieferte Konfiguration sind sauber
+              getrennt.
+            </li>
+            <li class="border-base-300 border-l-2 pl-4">
+              Backup-Integrität, Restore und produktbezogene Migrationen können
+              automatisiert geprüft werden.
+            </li>
+            <li class="border-base-300 border-l-2 pl-4">
+              Eine kompatible Ziel-Runtime und erreichbare Abhängigkeiten stehen
+              bereit.
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="text-xl">Kein passender Vertrag</h3>
+          <ul class="text-base-content/70 mt-5 space-y-4">
+            <li class="border-base-300 border-l-2 pl-4">
+              Kritischer Zustand ist weder abgrenzbar noch verläßlich
+              versionierbar.
+            </li>
+            <li class="border-base-300 border-l-2 pl-4">
+              Ein Ziel kann notwendige Identitäten, Abhängigkeiten oder
+              Konfiguration nicht bereitstellen.
+            </li>
+            <li class="border-base-300 border-l-2 pl-4">
+              Erwartet wird, daß der App-Start zugleich Providerqualifizierung,
+              DNS/TLS, Cutover und Rollback erledigt.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div
+        class="border-base-300 mt-14 flex flex-col gap-6 border-t pt-10 sm:flex-row sm:items-center sm:justify-between"
+      >
+        <div class="max-w-2xl">
+          <h3 class="text-2xl">Den Vertrag am laufenden Beispiel prüfen.</h3>
+          <p class="text-base-content/70 mt-2">
+            Referenz klonen und ausführen, danach Voraussetzungen und Grenzen in
+            der Herleitung nachvollziehen.
+          </p>
+        </div>
+        <div class="flex shrink-0 flex-col gap-3 sm:items-end">
+          <a
+            href={referenceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="bartl-wordpress auf Codeberg prüfen und ausführen (neuer Tab)"
+            class="btn btn-primary focus-visible:outline-primary focus-visible:outline-2 focus-visible:outline-offset-4"
+          >
+            Referenz prüfen und ausführen
+          </a>
+          <a
+            href="/de/derivation/"
+            class:list={[
+              "link text-base-content/70 hover:text-base-content text-sm underline-offset-4",
+              linkFocus,
+            ]}
+          >
+            Herleitung lesen
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

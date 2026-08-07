@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import MainLayout from "@/layouts/MainLayout.astro";
 import InteractivePseudoCode from "@/components/InteractivePseudoCode.astro";
+import GermanLanding from "@/components/GermanLanding.astro";
 import { SITE } from "@/data/constants";
 import { languages, type Lang } from "@/i18n/ui";
 
@@ -48,91 +49,65 @@ const copy = {
     ctaLicense: "Apache-2.0 / CC-BY-4.0.",
     ctaGithub: "GitHub",
   },
-  de: {
-    heroTitle: "Ein Mechanismus für den gesamten Lifecycle deiner Anwendung.",
-    heroSub: "Egal, was der Ausgangspunkt ist - du bist betriebsbereit.",
-    codeLabel: "Der vollständige Decision Tree.",
-    codeCaption:
-      "Ein Design Pattern für Application Lifecycle. Der Mechanismus verzweigt anhand dessen, was er vorfindet - nicht anhand der angeforderten Operation.",
-    factsTitle: "Drei Fakten bestimmen die Operation.",
-    fact1Title: "Existiert lokaler State?",
-    fact1Body: "Reboot -> Serving. Kein State -> Restore oder Install.",
-    fact2Title: "Ist ein gültiges Backup verfügbar?",
-    fact2Body: "Backup vorhanden -> Restore. Kein Backup -> Fresh Install.",
-    fact3Title: "Engine-Version vs. State-Version?",
-    fact3Body:
-      "Gleich -> Serving. Engine neuer -> Migrate. Engine älter -> Abort.",
-    q1: "Wie viele Kunden betroffen?",
-    q2: "Wie schnell wieder online?",
-    q3: "Wie viel Datenverlust?",
-    discoveryP1:
-      "Bartl macht aus App- und Zustands-Recovery ein reproduzierbares Verfahren statt einer manuellen Sonderprozedur.",
-    discoveryP2:
-      "Nicht durch etwas Zusätzliches - sondern indem fünf separate Prozeduren durch einen einheitlichen Mechanismus ersetzt werden.",
-    disc1: "Automatisiere Disaster Recovery -> Installation kommt gratis.",
-    disc2: "Füge Version Detection hinzu -> Upgrades kommen gratis.",
-    disc3: "Führe es auf einem anderen Server aus -> Migration kommt gratis.",
-    disc4:
-      "Halte das Backup portabel -> App- und Zustandsportabilität kommt gratis.",
-    discoveryP3:
-      "Disaster, Kostendruck, Vertragsende, Neugier: Der Grund für den Wechsel ändert Bartls Restore-Operation nicht. Der umgebende Pfad sehr wohl - Provisionierung, Transfer, Erreichbarkeit und Cutover bestimmen die Ende-zu-Ende-Dauer. Bartl liefert den App- und Zustandsmechanismus, den Wechselfähigkeit benötigt.",
-    whoTitle: "Für wen das ist",
-    who1: "Du betreibst Anwendungen in Produktion und brauchst Recovery, die sich mit jedem Deployment selbst probt.",
-    who2: "Du brauchst Datenisolation und separate Compliance-Grenzen pro Kunde.",
-    who3: "Du willst den Betrieb linear skalieren - der N-te Stack bringt Arbeit, nicht Komplexität.",
-    who4: "Du willst Anwendung und Zustand zu deinen Bedingungen und in deinem Zeitrahmen auf ein kompatibles Ziel übertragen.",
-    ctaLicense: "Apache-2.0 / CC-BY-4.0.",
-    ctaGithub: "GitHub",
-  },
 };
 
-const c = copy[lang];
+const c = copy.en;
+const description =
+  lang === "de"
+    ? "Ein beobachteter, getesteter App- und Zustands-Startpfad für Install, Restore und Migration mit klaren Voraussetzungen und Grenzen."
+    : undefined;
 ---
 
-<MainLayout title={SITE.title} lang={lang}>
-  <div class="mx-auto max-w-3xl space-y-20 px-4 py-16 sm:py-24">
-    {/* Section 1: Hero */}
-    <section class="space-y-4">
-      <h1 class="text-3xl leading-tight font-medium sm:text-4xl lg:text-5xl">
-        {c.heroTitle}
-      </h1>
-      <p class="text-base-content/70 text-lg">{c.heroSub}</p>
-    </section>
+<MainLayout title={SITE.title} lang={lang} description={description}>
+  {
+    lang === "de" ? (
+      <GermanLanding />
+    ) : (
+      <div class="mx-auto max-w-3xl space-y-20 px-4 py-16 sm:py-24">
+        {/* Section 1: Hero */}
+        <section class="space-y-4">
+          <h1 class="text-3xl leading-tight font-medium sm:text-4xl lg:text-5xl">
+            {c.heroTitle}
+          </h1>
+          <p class="text-base-content/70 text-lg">{c.heroSub}</p>
+        </section>
 
-    {/* Section 2: The decision tree */}
-    <section class="space-y-4">
-      <p class="text-lg font-semibold">{c.codeLabel}</p>
-      <InteractivePseudoCode lang={lang} />
-      <p class="text-base-content/70">{c.codeCaption}</p>
-    </section>
+        {/* Section 2: The decision tree */}
+        <section class="space-y-4">
+          <p class="text-lg font-semibold">{c.codeLabel}</p>
+          <InteractivePseudoCode lang={lang} />
+          <p class="text-base-content/70">{c.codeCaption}</p>
+        </section>
 
-    {/* Section 3: The discovery */}
-    <section class="space-y-6">
-      <div class="space-y-2">
-        <p class="text-2xl leading-tight font-light">{c.q1}</p>
-        <p class="text-2xl leading-tight font-light">{c.q2}</p>
-        <p class="text-2xl leading-tight font-light">{c.q3}</p>
+        {/* Section 3: The discovery */}
+        <section class="space-y-6">
+          <div class="space-y-2">
+            <p class="text-2xl leading-tight font-light">{c.q1}</p>
+            <p class="text-2xl leading-tight font-light">{c.q2}</p>
+            <p class="text-2xl leading-tight font-light">{c.q3}</p>
+          </div>
+          <p>{c.discoveryP1}</p>
+          <p>{c.discoveryP2}</p>
+          <div class="space-y-2 font-mono text-sm">
+            <p>{c.disc1}</p>
+            <p>{c.disc2}</p>
+            <p>{c.disc3}</p>
+            <p>{c.disc4}</p>
+          </div>
+          <p>{c.discoveryP3}</p>
+        </section>
+
+        {/* Section 5: Who this is for */}
+        <section class="space-y-4">
+          <h2 class="text-2xl font-semibold">{c.whoTitle}</h2>
+          <ul class="text-base-content/80 list-inside list-disc space-y-3">
+            <li>{c.who1}</li>
+            <li>{c.who2}</li>
+            <li>{c.who3}</li>
+            <li>{c.who4}</li>
+          </ul>
+        </section>
       </div>
-      <p>{c.discoveryP1}</p>
-      <p>{c.discoveryP2}</p>
-      <div class="space-y-2 font-mono text-sm">
-        <p>{c.disc1}</p>
-        <p>{c.disc2}</p>
-        <p>{c.disc3}</p>
-        <p>{c.disc4}</p>
-      </div>
-      <p>{c.discoveryP3}</p>
-    </section>
-
-    {/* Section 5: Who this is for */}
-    <section class="space-y-4">
-      <h2 class="text-2xl font-semibold">{c.whoTitle}</h2>
-      <ul class="text-base-content/80 list-inside list-disc space-y-3">
-        <li>{c.who1}</li>
-        <li>{c.who2}</li>
-        <li>{c.who3}</li>
-        <li>{c.who4}</li>
-      </ul>
-    </section>
-  </div>
+    )
+  }
 </MainLayout>
