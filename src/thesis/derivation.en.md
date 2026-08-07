@@ -12,7 +12,7 @@ When production goes down, three questions decide your business outcome: how man
 
 Most organizations can't answer any of these until the crisis is underway.
 
-Bartl makes the last two answers automatic consequences of how you operate. Combined with multiplied single tenancy - one customer, one stack - the first answer shrinks to its minimum.
+Bartl makes the application-and-state mechanism behind the last two answers repeatable. The actual values also depend on backup cadence, target provisioning, transfer, and the access path. Combined with multiplied single tenancy - one customer, one stack - the first answer shrinks to its minimum.
 
 Not by adding something - by replacing five separate procedures with one unified mechanism. The operations are genuinely different in their inputs, but the mechanism that executes them is identical. It looks at what state exists and what version the engine is, and does the right thing.
 
@@ -26,7 +26,7 @@ Five premises inform the design:
 4. Humans can't apply change reliably.
 5. Every link in the chain between intent and result adds cost: cognitive load, failure surface, side effects.
 
-These kill every escape route: you can't prevent all failures (must design for recovery), you can't use careful manual procedures (must automate), you can't add a layer to manage it (must shorten the chain). What survives all five filters: fully automated disaster recovery with the shortest possible chain.
+These kill every escape route: you can't prevent all failures (must design for recovery), you can't use careful manual procedures (must automate), you can't add a layer to manage it (must shorten the chain). What survives all five filters: fully automated application-and-state recovery within the shortest practical chain.
 
 And we can - because apps, infrastructure, and both their operations are now expressible as code. Version-controlled, testable, reproducible. That was the last missing piece.
 
@@ -34,9 +34,9 @@ And we can - because apps, infrastructure, and both their operations are now exp
 
 And when you think about what DR actually is and how to automate it: DR = create from scratch + restore data. That gives you automated installation for free. Add version detection, and you have upgrades. Do it on a different server, and you have migration.
 
-Now keep the backup portable - no provider-specific snapshots, just a blob - and you can restore on any server, anywhere.
+Now keep the backup portable - no provider-specific snapshots, just a blob - and you can restore on any compatible target whose runtime preconditions are met.
 
-Disaster, cost pressure, contract end, curiosity: the reason you're moving doesn't change the operation. The timeline doesn't either - whether you have thirty seconds or thirty days, it's the same restore. That is Wechselfähigkeit.
+Disaster, cost pressure, contract end, curiosity: the reason you move does not change Bartl's restore operation. The surrounding path still does - target provisioning, transfer, reachability, and cutover determine end-to-end time. Bartl provides the application-and-state mechanism required for Wechselfähigkeit; it is not the complete provider switch.
 
 ## The mechanism
 
@@ -64,10 +64,10 @@ Three facts determine the operation: does local state exist, is a valid backup a
 - DR restore: no state, backup -> restore() -> state created -> equal -> serving().
 - Out-of-place upgrade: no state, backup -> restore() -> state created -> engine > -> migrate() -> equal -> serving(). If you choose this path over in-place upgrade (a business decision, not a technical requirement), every upgrade exercises the restore path. Not prescribed by the pattern - just a property that comes at no additional cost.
 - Migration: same as DR restore, different server. Same operation.
-- Evacuation: same as DR restore, different provider. Same operation.
+- Evacuation within Bartl: same as DR restore, different provider. The same application-and-state operation.
 - Downgrade attempt: state exists, engine < -> abort(). Running old code against a new schema is dangerous - the industry converged on fix-forward for good reason. Bartl prevents the dangerous thing. If you need to go back, restore from pre-upgrade backup + restart: that's the DR path, already a first-class operation (requires that the backup was taken before the upgrade - enforced by convention, not by the mechanism).
 
-This covers all lifecycle operations. Explicitly out of scope: infrastructure (scaling, provisioning), data integrity (corruption without version change), and runtime concerns (monitoring, cert rotation). These observe or maintain the system but don't move state.
+This covers the state-moving operations inside the Bartl pattern. Explicitly out of scope: infrastructure (scaling and provisioning), user and dependency reachability, identity and authorization, service cutover, and runtime concerns such as monitoring and certificate rotation. These establish preconditions, observe, or maintain the system, but do not move application state.
 
 Preconditions (database accepting connections, storage mounted, network available) are the runtime's job, not Bartl's. Every runtime already enforces ordering natively: depends_on in compose, initContainers in K8s, After= in systemd. Bartl needs preconditions met. How they're met is not its concern.
 
@@ -87,7 +87,7 @@ Structural properties:
 
 Expected benefits (contingent on usage patterns):
 
-6. Improved RTO (automated recovery, no manual steps)
+6. Shorter restore time within the application-and-state mechanism (automated recovery with no manual steps inside that path)
 7. Trustworthy backups (restore path exercised with every out-of-place upgrade - caveat: in-place upgrades do not exercise it)
 8. Reduced cognitive load (one procedure to learn instead of separate install/restore/upgrade procedures)
 9. Growing operational confidence (the same code path runs for install, upgrade, and restore - repeated exercise builds trust in the mechanism)
@@ -95,8 +95,8 @@ Expected benefits (contingent on usage patterns):
 Requires convention choices:
 
 10. Portable backups (requires a provider-independent blob format - e.g. database dumps + filesystem tar, not provider-specific snapshots)
-11. Evacuation capability (depends on portable blob + no provider-specific APIs in critical path)
-12. Sovereignty - the "thin waist": application-specific blob above, standard platform below (Linux/compose, K8s). The blob is yours, the platform is commodity. Sovereignty follows from keeping the blob portable and the platform standard. Infrastructure cutover (DNS, firewall, certs) is an orchestration concern outside Bartl's scope.
+11. Application-and-state evacuation (depends on portable blob + no provider-specific APIs in the Bartl path)
+12. Application-and-state portability - the "thin waist": application-specific blob above, standard platform below (Linux/compose, K8s). The blob is yours, the platform is commodity. This provides a necessary component of Wechselfähigkeit, not sovereignty by itself. A complete provider switch additionally requires an export already held outside the source provider, target provisioning, user and dependency reachability, identities and authorization, controlled service cutover, and a decision independent of the affected provider. That surrounding orchestration is outside Bartl's scope.
 
 Requires product work:
 

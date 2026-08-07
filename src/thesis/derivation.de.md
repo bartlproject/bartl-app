@@ -12,7 +12,7 @@ Wenn die Produktion ausfällt, entscheiden drei Fragen über das Geschäftsergeb
 
 Die meisten Organisationen können keine dieser Fragen beantworten, bevor die Krise im Gange ist.
 
-Bartl macht die letzten beiden Antworten zu automatischen Konsequenzen der Betriebsweise. Kombiniert mit vervielfachter Single Tenancy - ein Kunde, ein Stack - schrumpft die erste Antwort auf ihr Minimum.
+Bartl macht den App- und Zustandsmechanismus hinter den letzten beiden Antworten reproduzierbar. Die tatsächlichen Werte hängen zusätzlich von Backup-Takt, Zielbereitstellung, Transfer und Zugangspfad ab. Kombiniert mit vervielfachter Single Tenancy - ein Kunde, ein Stack - schrumpft die erste Antwort auf ihr Minimum.
 
 Nicht durch Hinzufügen von etwas - sondern durch Ersetzen von fünf getrennten Verfahren durch einen einheitlichen Mechanismus. Die Operationen unterscheiden sich tatsächlich in ihren Eingaben, aber der Mechanismus, der sie ausführt, ist identisch. Er betrachtet, welcher State existiert und welche Version die Engine hat, und tut das Richtige.
 
@@ -26,7 +26,7 @@ Fünf Prämissen bestimmen das Design:
 4. Menschen können Veränderungen nicht zuverlässig anwenden.
 5. Jedes Glied in der Kette zwischen Absicht und Ergebnis verursacht Kosten: kognitive Last, Fehleroberfläche, Seiteneffekte.
 
-Diese beseitigen jeden Ausweg: Man kann nicht alle Fehler verhindern (muß für Wiederherstellung entwerfen), man kann keine sorgfältigen manuellen Verfahren anwenden (muß automatisieren), man kann keine Schicht hinzufügen, um es zu verwalten (muß die Kette verkürzen). Was alle fünf Filter überlebt: vollautomatisiertes Disaster Recovery mit der kürzestmöglichen Kette.
+Diese beseitigen jeden Ausweg: Man kann nicht alle Fehler verhindern (muß für Wiederherstellung entwerfen), man kann keine sorgfältigen manuellen Verfahren anwenden (muß automatisieren), man kann keine Schicht hinzufügen, um es zu verwalten (muß die Kette verkürzen). Was alle fünf Filter überlebt: vollautomatisierte App- und Zustandswiederherstellung innerhalb einer möglichst kurzen Wirkungskette.
 
 Und wir können - weil Anwendungen, Infrastruktur und beider Betrieb jetzt als Code ausdrückbar sind. Versionskontrolliert, testbar, reproduzierbar. Das war das letzte fehlende Stück.
 
@@ -34,9 +34,9 @@ Und wir können - weil Anwendungen, Infrastruktur und beider Betrieb jetzt als C
 
 Und wenn man darüber nachdenkt, was DR tatsächlich ist und wie man es automatisiert: DR = von Grund auf erstellen + Daten wiederherstellen. Das liefert automatisierte Installation gratis mit. Versionserkennung hinzufügen, und man hat Upgrades. Auf einem anderen Server ausführen, und man hat Migration.
 
-Nun das Backup portabel halten - keine anbieterspezifischen Snapshots, nur ein Blob - und man kann auf jedem Server überall wiederherstellen.
+Nun das Backup portabel halten - keine anbieterspezifischen Snapshots, nur ein Blob - und man kann auf jedem kompatiblen Ziel wiederherstellen, dessen Runtime-Voraussetzungen erfüllt sind.
 
-Katastrophe, Kostendruck, Vertragsende, Neugier: der Grund für den Wechsel ändert nicht die Operation. Der Zeitrahmen auch nicht - ob man dreißig Sekunden oder dreißig Tage hat, es ist dasselbe Restore. Das ist Wechselfähigkeit.
+Katastrophe, Kostendruck, Vertragsende, Neugier: Der Grund für den Wechsel ändert Bartls Restore-Operation nicht. Der umgebende Pfad sehr wohl - Zielbereitstellung, Transfer, Erreichbarkeit und Cutover bestimmen die Ende-zu-Ende-Dauer. Bartl liefert den App- und Zustandsmechanismus, den Wechselfähigkeit benötigt; es ist nicht der vollständige Providerwechsel.
 
 ## Der Mechanismus
 
@@ -64,10 +64,10 @@ Drei Fakten bestimmen die Operation: Existiert lokaler State, ist ein gültiges 
 - DR Restore: kein State, Backup -> restore() -> State erstellt -> gleich -> serving().
 - Out-of-place Upgrade: kein State, Backup -> restore() -> State erstellt -> Engine > -> migrate() -> gleich -> serving(). Wählt man diesen Weg statt In-place Upgrade (eine geschäftliche Entscheidung, keine technische Anforderung), wird bei jedem Upgrade der Restore-Pfad durchlaufen. Nicht vom Muster vorgeschrieben - nur eine Eigenschaft, die ohne zusätzliche Kosten entsteht.
 - Migration: wie DR Restore, anderer Server. Dieselbe Operation.
-- Evakuierung: wie DR Restore, anderer Anbieter. Dieselbe Operation.
+- Evakuierung innerhalb Bartls: wie DR Restore, anderer Anbieter. Dieselbe App- und Zustandsoperation.
 - Downgrade-Versuch: State existiert, Engine < -> abort(). Alten Code gegen ein neues Schema laufen zu lassen ist gefährlich - die Branche hat sich aus gutem Grund auf Fix-Forward geeinigt. Bartl verhindert das Gefährliche. Muß man zurück, Restore aus dem Backup vor dem Upgrade + Neustart: das ist der DR-Pfad, bereits eine erstklassige Operation (setzt voraus, daß das Backup vor dem Upgrade erstellt wurde - durch Konvention erzwungen, nicht durch den Mechanismus).
 
-Dies deckt alle Lebenszyklus-Operationen ab. Explizit außerhalb des Scope: Infrastruktur (Skalierung, Provisionierung), Datenintegrität (Korruption ohne Versionswechsel) und Runtime-Belange (Monitoring, Zertifikatsrotation). Diese beobachten oder erhalten das System, bewegen aber keinen State.
+Dies deckt die zustandsverändernden Operationen innerhalb des Bartl-Musters ab. Explizit außerhalb des Scope: Infrastruktur (Skalierung und Provisionierung), Nutzer- und Abhängigkeitserreichbarkeit, Identität und Berechtigung, Service-Cutover sowie Runtime-Belange wie Monitoring und Zertifikatsrotation. Diese stellen Voraussetzungen her, beobachten oder erhalten das System, bewegen aber keinen App-Zustand.
 
 Voraussetzungen (Datenbank nimmt Verbindungen an, Speicher eingehängt, Netzwerk verfügbar) sind Aufgabe der Runtime, nicht von Bartl. Jede Runtime erzwingt Reihenfolge bereits nativ: depends_on in Compose, initContainers in K8s, After= in systemd. Bartl braucht erfüllte Voraussetzungen. Wie sie erfüllt werden, ist nicht seine Sache.
 
@@ -87,7 +87,7 @@ Strukturelle Eigenschaften:
 
 Erwarteter Nutzen (abhängig von Nutzungsmustern):
 
-6. Verbessertes RTO (automatisierte Wiederherstellung, keine manuellen Schritte)
+6. Verkürzte Restore-Dauer innerhalb des App- und Zustandsmechanismus (automatisierte Wiederherstellung ohne manuelle Schritte innerhalb dieses Pfades)
 7. Vertrauenswürdige Backups (Restore-Pfad wird bei jedem Out-of-place Upgrade durchlaufen - Einschränkung: In-place Upgrades durchlaufen ihn nicht)
 8. Reduzierte kognitive Last (ein Verfahren zu lernen statt getrennter Install-/Restore-/Upgrade-Verfahren)
 9. Wachsendes Betriebsvertrauen (derselbe Codepfad läuft für Install, Upgrade und Restore - wiederholte Ausführung baut Vertrauen in den Mechanismus auf)
@@ -95,8 +95,8 @@ Erwarteter Nutzen (abhängig von Nutzungsmustern):
 Erfordert Konventionsentscheidungen:
 
 10. Portable Backups (erfordert ein anbieterunabhängiges Blob-Format - z.B. Datenbankdumps + Dateisystem-Tar, keine anbieterspezifischen Snapshots)
-11. Evakuierungsfähigkeit (abhängig von portablem Blob + keine anbieterspezifischen APIs im kritischen Pfad)
-12. Souveränität - die "dünne Taille": anwendungsspezifischer Blob darüber, Standardplattform darunter (Linux/Compose, K8s). Der Blob gehört einem, die Plattform ist Massenware. Souveränität folgt daraus, den Blob portabel und die Plattform standardisiert zu halten. Infrastrukturumstellung (DNS, Firewall, Zertifikate) ist ein Orchestrierungsbelang außerhalb von Bartls Scope.
+11. App- und Zustandsevakuierung (abhängig von portablem Blob + keine anbieterspezifischen APIs im Bartl-Pfad)
+12. App- und Zustandsportabilität - die "dünne Taille": anwendungsspezifischer Blob darüber, Standardplattform darunter (Linux/Compose, K8s). Der Blob gehört einem, die Plattform ist Massenware. Daraus folgt ein notwendiger Baustein der Wechselfähigkeit, nicht Souveränität an sich. Ein vollständiger Providerwechsel erfordert zusätzlich einen bereits außerhalb des Quellproviders verfügbaren Export, Zielprovisionierung, Nutzer- und Abhängigkeitserreichbarkeit, Identitäten und Berechtigungen, einen geregelten Service-Cutover sowie eine vom betroffenen Provider unabhängige Entscheidung. Diese umgebende Orchestrierung liegt außerhalb von Bartls Scope.
 
 Erfordert Produktarbeit:
 
