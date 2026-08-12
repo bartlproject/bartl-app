@@ -2,145 +2,185 @@
 
 # Bartl
 
-A design pattern for application lifecycle. One startup decision based on observed system state and version - the mechanism branches on what it finds, not on what operation was requested.
+A design pattern for the lifecycle of stateful applications. At startup, one mechanism decides from observed state, an externally available backup, and versions. It does not follow an operation requested by the operator.
 
 Website: [bartl.app](https://bartl.app)
 
-## The problem
+## Purpose and causal model
 
-When production goes down, three questions decide your business outcome: how many customers affected, how fast back online, how much data lost.
+An organization fulfils its mission only when authorized users receive the required service. They must be able to reach the application, and the application must be able to reach its required dependencies. Application, state, and dependencies must be available, functionally correct, and trustworthy.
 
-Most organizations can't answer any of these until the crisis is underway.
+```text
+mission
+-> required service
+-> accountable protection and operating objectives
+-> required capabilities and evidence
+```
 
-Bartl makes the application-and-state mechanism behind the last two answers repeatable. The actual values also depend on backup cadence, target provisioning, transfer, and the access path. Combined with multiplied single tenancy - one customer, one stack - the first answer shrinks to its minimum.
+Resilience is the ability to maintain a service under a named disruption or recover it within accountable loss limits. Switchability is the demonstrated operational ability to move the complete service chain to a different operating domain. Sovereignty is the organization's ability to decide independently and make that decision effective without an unacceptable external dependency. Sovereignty is not a property of a provider or product.
 
-Not by adding something - by replacing five separate procedures with one unified mechanism. The operations are genuinely different in their inputs, but the mechanism that executes them is identical. It looks at what state exists and what version the engine is, and does the right thing.
+None of these capabilities generally follows from another. Provider-internal failover can be resilient without permitting an independent switch. A portable export can permit a switch without meeting RTO, RPO, or functional requirements. A named threat profile is what connects the requirements.
 
-## The premises
+```text
+threat profile "loss of the former provider domain"
+-> resilience: recover the service within its protection limits
+-> sovereignty: decide and execute the switch independently
+-> shared condition: recovery without cooperation from the lost domain
+```
 
-Five premises inform the design:
+A production outage raises three business questions. How many users are affected, when will the required service be available again, and which data state can be recovered? The Bartl path makes the product-side application-and-state part behind the last two answers repeatable. Actual RTO and RPO values also depend on backup cadence, target provisioning, transfer, reachability, and functional acceptance.
 
-1. Software delivers value only in production.
-2. Change is inevitable.
-3. Errors are inevitable.
-4. Humans can't apply change reliably.
-5. Every link in the chain between intent and result adds cost: cognitive load, failure surface, side effects.
+## The recovery decision
 
-These kill every escape route: you can't prevent all failures (must design for recovery), you can't use careful manual procedures (must automate), you can't add a layer to manage it (must shorten the chain). What survives all five filters: fully automated application-and-state recovery within the shortest practical chain.
+Every service receives a recovery decision with threat-specific protection profiles. Not every service needs the same RTO, RPO, target readiness, or drill depth. A hard-to-reverse operational or contractual dependency must not be entered, extended, or accepted again before the decision has been made.
 
-And we can - because apps, infrastructure, and both their operations are now expressible as code. Version-controlled, testable, reproducible. That was the last missing piece.
+The recovery decision identifies at least:
 
-## The discovery
+- the mission, service, and minimum function required during continuity operation;
+- the threat profile and the operating or contractual domains that are lost or no longer trusted;
+- RTO, RPO, blast radius, and the deadline for complete normal operation;
+- required recovery contracts for the application, state, and every necessary dependency;
+- accountable service, product, operations, security, and risk roles;
+- current evidence and the next required drill;
+- remaining gaps and exactly one accountable outcome.
 
-And when you think about what DR actually is and how to automate it: DR = create from scratch + restore data. That gives you automated installation for free. Add version detection, and you have upgrades. Do it on a different server, and you have migration.
+Permitted outcomes are fulfilment, transformation of the existing application, replacement by another product or prepared alternate procedure, and a time-limited exception. An exception names the risk owner, compensating measures, expiry date, and next decision. "Partially fulfilled" is a finding, not a completed outcome.
 
-Now keep the backup portable - no provider-specific snapshots, just a blob - and you can restore on any compatible target whose runtime preconditions are met.
+The service owner determines the service, minimum function, and decision. Product, operations, and security provide their respective evidence. Only the mandated risk owner may accept an exception.
 
-Disaster, cost pressure, contract end, curiosity: the reason you move does not change Bartl's restore operation. The surrounding path still does - target provisioning, transfer, reachability, and cutover determine end-to-end time. Bartl provides the application-and-state mechanism required for Wechselfähigkeit; it is not the complete provider switch.
+## Chained service-recovery contract
 
-## The mechanism
+The service-recovery contract describes the complete service chain from the user to the functional outcome. It can be fulfilled by recovering the same application or by a previously qualified alternate procedure. An alternate procedure can support resilience and sovereign agency, but it is not Bartl-conformant.
 
-Best of all: the decision tree fits in 9 lines.
+In a Bartl recovery, the application's functional identity remains stable. An accepted release from the same product line is joined to a continuously attributable state lineage and passes functional acceptance. A verified migration during recovery is permitted. A functionally equivalent different product remains an alternate procedure.
+
+Every dependency not transported by Bartl requires its own recovery or replacement contract. These dependencies can include databases, keys and HSMs, licensing and installation rights, network, identity, service address, and target capacity. The overall evidence is complete only when every contract required for the minimum function has been fulfilled.
+
+A recovery set is independently controlled only if releases, state, keys, trust anchors, and procedural information remain accessible and usable after complete loss of the former operating and administration domain. Storage at another provider or multiple copies do not suffice when accounts, keys, or administration still share the same failure domain.
+
+RTO and RPO are objectives. RTA and RPA record the recovery time and expected data loss actually achieved during the drill. The defined minimum function must pass functional acceptance within the RTO. Complete normal operation follows within a separately accountable restoration deadline.
+
+## Evidence levels and claim boundaries
+
+| Claim                                            | Minimum evidence                                                                                                                            | Does not demonstrate                                                     |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Bartl-conformant                                 | Versioned product contract, accepted release and recovery point, successful recovery or migration until the product is ready for acceptance | complete service, RTO/RPO, or a provider switch                          |
+| Recovery-capable for a named protection profile  | Complete recovery-contract chain, technically unavailable source, RTA/RPA within limits, and functionally accepted minimum service          | production cutover and new write authority                               |
+| Practically provider-switchable for that profile | In addition, an exit drill with a stable service address, fencing, exclusive write authority, and explicit forward or fallback decision     | general switchability of other applications, targets, or threat profiles |
+
+Sovereignty remains a property of the organization. None of the three labels makes a provider, product, or individual drill "sovereign".
+
+The Bartl and product evidence is renewed after material changes to the release, state contract, or migration logic. End-to-end evidence is renewed after changes to the protection profile, target, identity, network, or cutover, and periodically even without such changes. A successful run is not a certificate without an expiry condition.
+
+During a recovery drill, source access, source administration, and source APIs are technically unavailable to the recovery team. The recovery set and evidence archive remain outside that domain. Every required request to the source is a finding. Only the additional exit drill tests user cutover, fencing, and write authority.
+
+An exit can be aborted and an unchanged frozen source reactivated until the authority commit. After authoritative writes have occurred at the target, there is no return to the old generation. A subsequent failure creates a new recovery generation from an accepted state.
+
+## The canonical Bartl boundary
+
+### Principle
+
+Recoverability is not an emergency add-on. It is a prerequisite for responsible operation. A separate, rarely used restore path decays. A shared mechanism used regularly for installation, recovery, upgrades, and migration keeps recovery capability in the normal lifecycle.
+
+### Pattern
+
+Bartl owns the pinned application release, declared state, and the path for initialization, recovery, and migration until `serving()`. It branches on observed facts at the target, not on operation names.
+
+`serving()` means that release and state are compatible, internally consistent, and ready for acceptance through product-supplied checks. It demonstrates neither user reachability nor functionally accepted continuity operation.
+
+The contract applies as a requirement to every application that claims this part of switchability. A reference does not prove conformance for other applications. Each product must implement and execute its own state inventory, migration logic, backup, and recovery.
+
+### Surrounding service-recovery contract
+
+The complete service also needs a qualified and provisionable target, trustworthy software and recovery supply chains, identities and authorization, user and dependency reachability, a stable service identity, exclusive write authority, activation, and functional acceptance. These conditions determine the end-to-end drill. They are not part of the Bartl mechanism.
+
+## Contract with four inputs
+
+The startup mechanism depends on four inputs supplied by the product and its environment.
+
+| Input                                   | Meaning                                                                                                      |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Pinned and accepted application release | Immutable release including product-specific migration logic                                                 |
+| Declared state inventory                | Portable mutable state including its state version                                                           |
+| Durable, independently controlled store | Storage independently available from the source operation with a fully published and accepted recovery point |
+| Target configuration                    | Configuration supplied by the target, such as endpoint and credentials                                       |
+
+For the WordPress reference, the state inventory consists of the database and uploads. WordPress core, plugins, and themes belong to the application release. The target environment supplies endpoints and credentials. This separation is part of the contract. An image replaces neither database nor uploads, and credentials do not belong in the backup format.
+
+Technical integrity verification and a trust decision are different. Checksums detect later modification, but not an already compromised build or a functionally incorrect recovery point. Product and operator must therefore decide which combination of release and recovery point is accepted. A supply-chain attack may revoke that acceptance without causing a checksum mismatch. Provenance, trust roots, key rotation, and the functional trust decision remain outside Bartl.
+
+From these four inputs, the mechanism derives three observations for its branch: does valid local state exist, is a fully published and accepted recovery point available, and how does the engine version compare to the state version?
+
+## Observed startup path
+
+The mechanism checks local state first. If it exists, it compares engine and state versions. If it does not, the mechanism tries to fetch and verify an external backup. Only when neither local state nor a valid backup exists does it initialize fresh state.
 
 ```python
 until serving():
-    if local state exists:
-        engine version vs state version:
-            equal:    serving()
-            engine >: migrate()
-            engine <: abort("downgrade")
-    else:
-        if fetch_backup(): restore(backup)
-        else:              init()
-
-serving(): run app, schedule backups
+    if local_state_exists():
+        if engine_version == state_version: serving()
+        elif engine_version > state_version: migrate()
+        else: abort("downgrade")
+    elif valid_external_backup(): restore()
+    else: init()
 ```
 
-Three facts determine the operation: does local state exist, is a valid backup available (fetch_backup() includes retrieval and integrity verification), and how does the engine version compare to the state version. Every branch except serving() and abort() changes state and loops back.
+After `init()`, `restore()`, or `migrate()`, the mechanism observes the state again. The code branches on facts at the target, not labels such as restore, upgrade, or migration. A failure is not repaired by choosing a different operation name. The application must be able to recognize whether local state is valid. Not every form of semantic corruption can be derived from its mere existence.
 
-- Reboot: state exists, equal -> serving().
-- Fresh install: no state, no backup -> init() -> state created -> equal -> serving().
-- In-place upgrade: state exists, engine > -> migrate() -> equal -> serving().
-- DR restore: no state, backup -> restore() -> state created -> equal -> serving().
-- Out-of-place upgrade: no state, backup -> restore() -> state created -> engine > -> migrate() -> equal -> serving(). If you choose this path over in-place upgrade (a business decision, not a technical requirement), every upgrade exercises the restore path. Not prescribed by the pattern - just a property that comes at no additional cost.
-- Migration: same as DR restore, different server. Same operation.
-- Evacuation within Bartl: same as DR restore, different provider. The same application-and-state operation.
-- Downgrade attempt: state exists, engine < -> abort(). Running old code against a new schema is dangerous - the industry converged on fix-forward for good reason. Bartl prevents the dangerous thing. If you need to go back, restore from pre-upgrade backup + restart: that's the DR path, already a first-class operation (requires that the backup was taken before the upgrade - enforced by convention, not by the mechanism).
+## Consequences of the mechanism
 
-This covers the state-moving operations inside the Bartl pattern. Explicitly out of scope: infrastructure (scaling and provisioning), user and dependency reachability, identity and authorization, service cutover, and runtime concerns such as monitoring and certificate rotation. These establish preconditions, observe, or maintain the system, but do not move application state.
+A restart with the same valid local state proceeds directly to service. Without local state, a valid external backup returns through `restore()` to the version comparison. Without either, `init()` creates fresh state.
 
-Preconditions (database accepting connections, storage mounted, network available) are the runtime's job, not Bartl's. Every runtime already enforces ordering natively: depends_on in compose, initContainers in K8s, After= in systemd. Bartl needs preconditions met. How they're met is not its concern.
+An upgrade with a newer engine requires product-specific migration logic. Bartl provides the decision point, not a universal migration. An engine older than the state aborts.
 
-Error handling: init(), restore(), and migrate() can fail partway through, leaving partial state. The loop structure is the recovery mechanism: on next startup, the loop re-evaluates the same three facts and picks up where it left off. What the loop cannot do is detect corruption within otherwise valid-looking state - that is application-specific product work (see item 21 below).
+Recovery, migration, and evacuation can use the same application-and-state path when the target is compatible with the application and an accepted recovery point is available externally. A target change alters provider, endpoint, and configuration, not the meaning of release, database, files, and state version.
 
-## What follows
+After authoritative writes on a new target, an earlier recovery generation must not become active again. On another failure, the surrounding orchestration selects an accepted data state and activates a new generation at the next target. Bartl executes the same application-and-state path there. It manages neither global generations nor write authority or cutover.
 
-### From the pattern
+The result is one execution path and fewer distinct operating procedures for this slice. It does not automatically provide recovery objectives, portable backups, correct migrations, a trustworthy supply chain, or a complete operating organization. Each of those properties must be proven and operated.
 
-Structural properties:
+## Product requirements
 
-1. Unified state-moving machinery (one mechanism for all productive operations)
-2. Automated installation (DR forces it)
-3. Automated DR (the design objective)
-4. Branching on observed system state rather than declared operation
-5. Migration = same mechanism, different server
+For the pattern to work, the product must at least:
 
-Expected benefits (contingent on usage patterns):
+- declare which databases, directories, and metadata make up mutable state;
+- version the state and determine that version reliably;
+- produce a new state version through tested, product-specific migration logic;
+- create a backup format and verify that it can be restored;
+- initialize fresh, empty state unambiguously;
+- handle partially created or damaged state so that the next startup can make a sound decision again;
+- provide product-side technical and semantic checks for restored state.
 
-6. Shorter restore time within the application-and-state mechanism (automated recovery with no manual steps inside that path)
-7. Trustworthy backups (restore path exercised with every out-of-place upgrade - caveat: in-place upgrades do not exercise it)
-8. Reduced cognitive load (one procedure to learn instead of separate install/restore/upgrade procedures)
-9. Growing operational confidence (the same code path runs for install, upgrade, and restore - repeated exercise builds trust in the mechanism)
+The runtime supplies fulfilled preconditions such as a reachable database, storage, and network. Bartl does not replace those preconditions.
 
-Requires convention choices:
+## Position within a provider switch
 
-10. Portable backups (requires a provider-independent blob format - e.g. database dumps + filesystem tar, not provider-specific snapshots)
-11. Application-and-state evacuation (depends on portable blob + no provider-specific APIs in the Bartl path)
-12. Application-and-state portability - the "thin waist": application-specific blob above, standard platform below (Linux/compose, K8s). The blob is yours, the platform is commodity. This provides a necessary component of Wechselfähigkeit, not sovereignty by itself. A complete provider switch additionally requires an export already held outside the source provider, target provisioning, user and dependency reachability, identities and authorization, controlled service cutover, and a decision independent of the affected provider. That surrounding orchestration is outside Bartl's scope.
+For a provider switch that preserves the same application and its state lineage, the Bartl path is a necessary application-and-state component, not a substitute for the whole undertaking. A qualified alternate procedure follows a different contract.
 
-Requires product work:
+| Stage                       | Result                                                                            | Responsibility          |
+| --------------------------- | --------------------------------------------------------------------------------- | ----------------------- |
+| Decision and qualification  | Independent decision and suitable target                                          | Operator                |
+| Prepare target              | Provisioned runtime, network, identity, storage, and configuration                | Operator and target     |
+| Provide recovery set        | Accepted release and accepted recovery point outside the former source operation  | Operator and product    |
+| Start application and state | Recovery, initialization, or migration based on observed state                    | Bartl and product logic |
+| Activate service            | Stable address, exclusive write authority, fencing, acceptance, and forward rules | Operator                |
 
-13. Version detection logic
-14. Migration scripts (product code, not Bartl code)
-15. State declaration (what paths and databases survive a reinstall)
-16. Backup script (snapshot state into a blob)
-17. Backup scheduling, rotation, retention
-18. Backup verification (checksums, round-trip testing)
-19. Multi-service consistency during backup (application-level concern)
-20. Precondition enforcement (delegated to runtime)
-21. Partial state detection and recovery (failed init/restore/migrate leaving corrupted state)
+The table deliberately separates the reusable startup mechanism from the switching procedure. It promises neither a complete provider switch nor automatic reachability or trustworthiness.
 
-### From the pattern + multiplied single tenancy
+## Reference and evidence boundaries
 
-Why single tenancy is viable now: the cost that made multi-tenancy unavoidable was operations - every additional stack meant more manual work, more tribal knowledge, more things to get wrong. When the mechanism is code - tested once, applied N times - that cost no longer scales with the number of stacks. Infrastructure cost still scales (cloud is more expensive per unit than on-prem), but it was never the dominant cost. Operations was.
+The executable [bartl-wordpress](https://codeberg.org/bartlapp/bartl-wordpress) reference makes the contract inspectable for WordPress. State, image contents, target configuration, and startup decision can be traced in code.
 
-Structural properties:
+The reference demonstrates the application-and-state contract for this pinned application class. It does not demonstrate conformance for other products, fixed RPO or RTO values, or a complete end-to-end provider switch. Those proofs arise only from the respective product, an accepted recovery set, the target environment, and an executed drill.
 
-22. Minimized blast radius (one error = one customer)
-23. Data isolation by design
-24. Separate compliance boundaries per customer
-25. Simple onboarding (spin up a stack)
-26. Simple offboarding (delete the stack and its backups)
-27. Per-customer agility (version pinning, rollbacks)
-28. Per-customer migrations (no big bang, gradual rollout)
+## Terminology foundations and sources
 
-Expected benefits (contingent on fleet tooling):
+The terminology follows established primary sources without treating their different scopes as interchangeable:
 
-29. Linear operational scaling (Nth stack adds operational work, not cognitive complexity - requires fleet tooling to maintain consistency; without it, N stacks is N times the manual work)
-30. Workforce: short chain (premise 5) plus small scope (single tenancy) make each stack comprehensible by one person. Neither alone is sufficient. Where both hold, the required skill level is a Fachanwendungsverantwortlicher, not a platform engineering team.
-31. Talent on/offboarding (learnable scope + clear ownership = fast ramp-up - requires both short chain and small scope)
+- The German IT Planning Council's [Strategy for Strengthening Digital Sovereignty](https://www.it-planungsrat.de/fileadmin/beschluesse/2021/Beschluss2021-09_Strategie_zur_Staerkung_der_digitalen_Souveraenitaet.pdf) treats sovereignty as independent, self-determined, and secure agency. The ability to switch, the ability to shape technology, and influence over providers are separate strategic objectives.
+- [NIST Cyber Resiliency](https://csrc.nist.gov/glossary/term/cyber_resiliency) is the ability to anticipate, withstand, recover from, and adapt to adverse conditions so that mission or business objectives can be achieved.
+- The [BSI Standard 200-4 for Business Continuity Management](https://www.bsi.bund.de/DE/Themen/Unternehmen-und-Organisationen/Standards-und-Zertifizierung/IT-Grundschutz/BSI-Standards/BSI-Standard-200-4-Business-Continuity-Management/bsi-standard-200-4_Business_Continuity_Management_node.html) derives recovery requirements from time-critical business processes and distinguishes the minimum business continuity objective, RTO/RPO, RTA/RPA, recovery, and restoration. It also permits alternate resources and procedures for continuity operation.
+- The [EU Data Act](https://eur-lex.europa.eu/eli/reg/2023/2854/oj/eng) defines switching between data-processing services of the same service type or to on-premises infrastructure. That legal switching concept requires neither the same application nor a successful disaster-recovery drill.
+- [DORA](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32022R2554) describes digital operational resilience as continued operational integrity and reliability during disruption, including through ICT third-party providers. Resilience alone therefore does not demonstrate independent switchability.
 
-Requires work:
-
-Bartl-specific:
-
-32. Channels / fleet management
-33. Bless/tag workflow
-34. Forge runner infrastructure
-35. Instance repos per customer
-
-Standard operational concerns (not introduced by Bartl):
-
-36. Monitoring aggregation across N stacks
-37. Secret management
-38. Infrastructure provisioning
+The Bartl orientation is compatible with the terminology and requirements logic of BSI Standard 200-4. It starts with mission and service, uses threat-specific protection profiles, separates continuity from normal operation, and requires measured evidence. The Bartl pattern alone is neither a business continuity management system nor complete evidence of BSI conformance. Evidence that the applicable BSI Standard 200-4 requirements are met arises only within an organizational scope from the protection profile, roles, chained recovery contracts, target environment, plans, functional acceptance, and executed exercises.
