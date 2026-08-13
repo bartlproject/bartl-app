@@ -22,6 +22,12 @@ const commitUrl = `https://codeberg.org/bartlapp/bartl-app/commit/${commitRef}`;
     <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
       <nav aria-label={t("nav.main")} class="flex flex-wrap items-center gap-x-5 gap-y-2">
         <a
+          href={`/${lang}/derivation/`}
+          class="hover:text-base-content focus-visible:outline-primary rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4"
+        >
+          {t("nav.derivation")}
+        </a>
+        <a
           href={`/${lang}/spec/`}
           class="hover:text-base-content focus-visible:outline-primary rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4"
         >

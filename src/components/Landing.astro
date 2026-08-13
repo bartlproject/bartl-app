@@ -49,12 +49,20 @@ const c = landingCopy[lang];
             {c.heroSecondary}
           </a>
         </div>
-        <a
-          href={`/${lang}/spec/`}
-          class="link text-base-content/70 hover:text-base-content focus-visible:outline-primary mt-6 inline-block rounded-sm text-sm underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4"
-        >
-          {c.heroSpec}
-        </a>
+        <div class="mt-6 flex flex-wrap gap-x-6 gap-y-3 text-sm">
+          <a
+            href={`/${lang}/derivation/`}
+            class="link text-base-content/70 hover:text-base-content focus-visible:outline-primary rounded-sm underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4"
+          >
+            {c.heroDerivation}
+          </a>
+          <a
+            href={`/${lang}/spec/`}
+            class="link text-base-content/70 hover:text-base-content focus-visible:outline-primary rounded-sm underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4"
+          >
+            {c.heroSpec}
+          </a>
+        </div>
       </div>
     </div>
   </section>
@@ -266,6 +274,12 @@ const c = landingCopy[lang];
           class="btn btn-primary focus-visible:outline-primary focus-visible:outline-2 focus-visible:outline-offset-4"
         >
           {c.ctaPrimary}
+        </a>
+        <a
+          href={`/${lang}/derivation/`}
+          class="link text-base-content/70 hover:text-base-content focus-visible:outline-primary rounded-sm text-sm underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4"
+        >
+          {c.ctaDerivation}
         </a>
         <a
           href={`/${lang}/spec/`}

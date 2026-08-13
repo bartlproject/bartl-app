@@ -19,6 +19,8 @@ The executable reference is [bartl-wordpress](https://codeberg.org/bartlapp/bart
 | Interactive startup decision | `src/components/InteractivePseudoCode.astro` |
 | Static pseudocode used by the spec | `src/components/PseudoCode.astro` |
 | DE/EN landing route | `src/pages/[lang]/index.astro` |
+| DE/EN derivation route and layout | `src/pages/[lang]/derivation.astro` |
+| DE/EN derivation copy | `src/content/derivation.ts` |
 | DE/EN technical spec route and layout | `src/pages/[lang]/spec.astro` |
 | DE/EN technical spec copy | `src/content/spec.ts` |
 | Navigation and footer | `src/components/Navbar.astro`, `src/components/Footer.astro` |

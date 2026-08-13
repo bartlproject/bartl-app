@@ -10,6 +10,7 @@ export const landingCopy = {
     heroPrimaryAria:
       "Ausführbare WordPress-Referenz auf Codeberg öffnen, neuer Tab",
     heroSecondary: "Entscheidungslogik ansehen",
+    heroDerivation: "Herleitung lesen",
     heroSpec: "Technische Spec lesen",
     problemEyebrow: "Das konkrete Problem",
     problemTitle: "Operationsnamen sind kein Zustand.",
@@ -117,6 +118,7 @@ export const landingCopy = {
     ctaBody:
       "Die Referenz ausführen, einen Sicherungsstand erzeugen und den Start auf einem leeren kompatiblen Ziel beobachten. Die Spec beschreibt den engen Vertrag dahinter.",
     ctaPrimary: "Referenz auf Codeberg öffnen",
+    ctaDerivation: "Warum dieser Mechanismus so aussieht",
     ctaSecondary: "Technische Spec lesen",
   },
   en: {
@@ -128,6 +130,7 @@ export const landingCopy = {
     heroPrimaryAria:
       "Open the executable WordPress reference on Codeberg in a new tab",
     heroSecondary: "See the decision logic",
+    heroDerivation: "Read the derivation",
     heroSpec: "Read the technical spec",
     problemEyebrow: "The concrete problem",
     problemTitle: "Operation names are not state.",
@@ -235,6 +238,7 @@ export const landingCopy = {
     ctaBody:
       "Run the reference, publish a backup, and observe startup on an empty compatible target. The spec describes the narrow contract behind it.",
     ctaPrimary: "Open the reference on Codeberg",
+    ctaDerivation: "Why the mechanism looks this way",
     ctaSecondary: "Read the technical spec",
   },
 } as const;

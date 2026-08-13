@@ -10,6 +10,8 @@ export const ui = {
   en: {
     "nav.codeberg": "Source code on Codeberg",
     "nav.spec": "Spec",
+    "nav.derivation": "Derivation",
+    "nav.derivationShort": "Why",
     "nav.darkMode": "Toggle dark mode",
     "nav.language": "Language",
     "nav.main": "Main navigation",
@@ -28,6 +30,8 @@ export const ui = {
   de: {
     "nav.codeberg": "Quellcode auf Codeberg",
     "nav.spec": "Spec",
+    "nav.derivation": "Herleitung",
+    "nav.derivationShort": "Warum",
     "nav.darkMode": "Dunkelmodus umschalten",
     "nav.language": "Sprache",
     "nav.main": "Hauptnavigation",

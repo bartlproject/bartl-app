@@ -12,6 +12,7 @@ interface Props {
 const { lang, pathname } = Astro.props;
 const t = useTranslations(lang);
 const homePath = `/${lang}/`;
+const derivationPath = `/${lang}/derivation/`;
 const specPath = `/${lang}/spec/`;
 ---
 
@@ -26,6 +27,14 @@ const specPath = `/${lang}/spec/`;
     </a>
 
     <nav aria-label={t("nav.main")} class="ml-auto flex items-center gap-1">
+      <a
+        href={derivationPath}
+        aria-current={pathname === derivationPath ? "page" : undefined}
+        class="btn btn-ghost btn-sm px-2 focus-visible:outline-primary focus-visible:outline-2 focus-visible:outline-offset-2"
+      >
+        <span class="hidden sm:inline">{t("nav.derivation")}</span>
+        <span class="sm:hidden">{t("nav.derivationShort")}</span>
+      </a>
       <a
         href={specPath}
         aria-current={pathname === specPath ? "page" : undefined}
