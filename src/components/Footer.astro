@@ -1,8 +1,8 @@
 ---
 // SPDX-License-Identifier: Apache-2.0
-import { languages, type Lang } from "@/i18n/ui";
-import { useTranslations, getAlternatePath } from "@/i18n/utils";
 import { SITE } from "@/data/constants";
+import { languages, type Lang } from "@/i18n/ui";
+import { getAlternatePath, useTranslations } from "@/i18n/utils";
 
 interface Props {
   lang: Lang;
@@ -12,99 +12,100 @@ interface Props {
 const { lang, pathname } = Astro.props;
 const t = useTranslations(lang);
 const year = new Date().getFullYear();
-
 const commitRef = __COMMIT_REF__;
 const commitShort = __COMMIT_SHORT__;
 const commitUrl = `https://codeberg.org/bartlapp/bartl-app/commit/${commitRef}`;
 ---
 
 <footer class="border-base-300 mt-auto border-t">
-  <div class="text-base-content/60 mx-auto max-w-3xl px-4 py-8 text-sm">
-    <div
-      class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
-    >
-      <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
-        <a href={`/${lang}/derivation/`} class="hover:text-base-content"
-          >{t("nav.derivation")}</a
-        >
+  <div class="text-base-content/60 mx-auto max-w-6xl px-4 py-8 text-sm sm:px-6 lg:px-8">
+    <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+      <nav aria-label={t("nav.main")} class="flex flex-wrap items-center gap-x-5 gap-y-2">
         <a
-          href={SITE.github}
+          href={`/${lang}/spec/`}
+          class="hover:text-base-content focus-visible:outline-primary rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4"
+        >
+          {t("nav.spec")}
+        </a>
+        <a
+          href={SITE.reference}
           target="_blank"
           rel="noopener noreferrer"
-          class="hover:text-base-content">GitHub</a
+          class="hover:text-base-content focus-visible:outline-primary rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4"
         >
-        <a href={`/${lang}/impressum/`} class="hover:text-base-content"
-          >{t("footer.imprint")}</a
+          {t("footer.reference")}
+        </a>
+        <a
+          href={SITE.codeberg}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hover:text-base-content focus-visible:outline-primary rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4"
         >
-        <a href={`/${lang}/datenschutz/`} class="hover:text-base-content"
-          >{t("footer.privacy")}</a
+          Codeberg
+        </a>
+        <a
+          href={`/${lang}/impressum/`}
+          class="hover:text-base-content focus-visible:outline-primary rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4"
         >
-      </div>
+          {t("footer.imprint")}
+        </a>
+        <a
+          href={`/${lang}/datenschutz/`}
+          class="hover:text-base-content focus-visible:outline-primary rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4"
+        >
+          {t("footer.privacy")}
+        </a>
+      </nav>
+
       <details class="dropdown dropdown-top dropdown-end">
         <summary
-          class="btn btn-ghost btn-xs text-base-content/60 m-0 gap-1"
+          class="btn btn-ghost btn-xs text-base-content/60 m-0 gap-1 focus-visible:outline-primary focus-visible:outline-2 focus-visible:outline-offset-2"
           aria-label={t("nav.language")}
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="size-3"
-          >
-            <circle cx="12" cy="12" r="10"></circle><path d="M2 12h20"
-            ></path><path
-              d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
-            ></path>
+          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M2 12h20"></path>
+            <path d="M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20"></path>
           </svg>
           {languages[lang]}
         </summary>
-        <ul
-          class="dropdown-content menu bg-base-100 rounded-box border-base-300 z-10 mb-1 w-40 border p-2 shadow-md"
-        >
-          {
-            Object.entries(languages).map(([code, name]) => (
-              <li>
-                <a
-                  href={getAlternatePath(pathname, code as Lang)}
-                  class:list={[code === lang && "font-semibold"]}
-                >
-                  {name}
-                </a>
-              </li>
-            ))
-          }
+        <ul class="dropdown-content menu bg-base-100 border-base-300 z-10 mb-2 w-40 rounded-box border p-2 shadow-md">
+          {Object.entries(languages).map(([code, name]) => (
+            <li>
+              <a
+                href={getAlternatePath(pathname, code as Lang)}
+                aria-current={code === lang ? "page" : undefined}
+                class:list={[code === lang && "font-semibold"]}
+              >
+                {name}
+              </a>
+            </li>
+          ))}
         </ul>
       </details>
     </div>
-    <p class="mt-4">
-      &copy; {year}
-      {t("footer.copyright")} &middot;
+
+    <p class="mt-5 leading-relaxed">
+      &copy; {year} {t("footer.copyright")} &middot;
       <a
         href="https://www.apache.org/licenses/LICENSE-2.0"
         target="_blank"
         rel="noopener noreferrer"
-        class="hover:text-base-content underline">{t("footer.license.code")}</a
-      > &middot;
+        class="hover:text-base-content focus-visible:outline-primary rounded-sm underline focus-visible:outline-2 focus-visible:outline-offset-4"
+      >{t("footer.license.code")}</a> &middot;
       <a
         href="https://creativecommons.org/licenses/by/4.0/"
         target="_blank"
         rel="noopener noreferrer"
-        class="hover:text-base-content underline"
-        >{t("footer.license.content")}</a
-      > &middot;
+        class="hover:text-base-content focus-visible:outline-primary rounded-sm underline focus-visible:outline-2 focus-visible:outline-offset-4"
+      >{t("footer.license.content")}</a> &middot;
       <a
         href={commitUrl}
         target="_blank"
         rel="noopener noreferrer"
         title={commitRef}
-        class="hover:text-base-content font-mono underline">{commitShort}</a
-      >
+        class="hover:text-base-content focus-visible:outline-primary rounded-sm font-mono underline focus-visible:outline-2 focus-visible:outline-offset-4"
+      >{commitShort}</a>
     </p>
   </div>
 </footer>

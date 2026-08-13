@@ -57,7 +57,7 @@ const canonicalUrl = new URL(pathname, SITE.url);
     </script>
   </head>
   <body class="min-h-screen flex flex-col bg-base-100 text-base-content">
-    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:p-4 focus:bg-base-100 focus:text-base-content">
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-sm focus:bg-base-100 focus:p-4 focus:text-base-content focus:outline-primary focus:outline-2 focus:outline-offset-2">
       {t("skip.content")}
     </a>
     <Navbar lang={lang} pathname={pathname} />
@@ -66,19 +66,30 @@ const canonicalUrl = new URL(pathname, SITE.url);
     </main>
     <Footer lang={lang} pathname={pathname} />
     <script is:inline>
-      document.addEventListener("click", function (e) {
-        if (e.target && e.target.closest("#theme-toggle")) {
+      (function () {
+        var toggle = document.getElementById("theme-toggle");
+        function syncToggle() {
+          if (toggle) {
+            toggle.setAttribute(
+              "aria-pressed",
+              String(document.documentElement.getAttribute("data-theme") === "dark"),
+            );
+          }
+        }
+        syncToggle();
+        document.addEventListener("click", function (event) {
+          if (!(event.target instanceof Element) || !event.target.closest("#theme-toggle")) return;
           var html = document.documentElement;
-          var isDark = html.getAttribute("data-theme") === "dark";
-          if (isDark) {
+          if (html.getAttribute("data-theme") === "dark") {
             html.removeAttribute("data-theme");
             localStorage.removeItem("theme");
           } else {
             html.setAttribute("data-theme", "dark");
             localStorage.setItem("theme", "dark");
           }
-        }
-      });
+          syncToggle();
+        });
+      })();
     </script>
   </body>
 </html>

@@ -1,246 +1,215 @@
 ---
 // SPDX-License-Identifier: Apache-2.0
-/**
- * Interactive pseudocode path highlighter.
- * Seven operation buttons highlight which lines execute for each path. The
- * point of Bartl is that operations you think are different run the SAME
- * path, so operations whose executed-line set is identical are grouped:
- * selecting one lights up its whole group and names the collision.
- * Nord on light page, GitHub Light on dark page (contrast, not blend).
- */
+import type { Lang } from "@/i18n/ui";
+
 interface Props {
-  lang: string;
+  lang: Lang;
 }
 
 const { lang } = Astro.props;
 
-const labels: Record<string, Record<string, string>> = {
+const observations = {
+  en: [
+    {
+      id: "ready",
+      label: "Local state, equal version",
+      caption: "Valid local state matches the engine version. The application serves.",
+    },
+    {
+      id: "upgrade",
+      label: "Local state, older version",
+      caption: "The engine is newer than local state. Product-specific migration runs.",
+    },
+    {
+      id: "downgrade",
+      label: "Local state, newer version",
+      caption: "The engine is older than local state. Startup aborts rather than downgrade it.",
+    },
+    {
+      id: "restore",
+      label: "Valid backup",
+      caption: "No local state exists. The verified backup is restored, then observed again.",
+    },
+    {
+      id: "initialize",
+      label: "No state, no backup",
+      caption: "Neither local state nor a backup exists. Fresh state is initialized, then observed again.",
+    },
+    {
+      id: "invalid",
+      label: "Invalid inputs",
+      caption: "Inputs are incomplete or contradictory. Startup aborts before state is changed.",
+    },
+  ],
+  de: [
+    {
+      id: "ready",
+      label: "Lokaler Zustand, gleiche Version",
+      caption: "Gültiger lokaler Zustand paßt zur Engine-Version. Die Anwendung bedient.",
+    },
+    {
+      id: "upgrade",
+      label: "Lokaler Zustand, ältere Version",
+      caption: "Die Engine ist neuer als der lokale Zustand. Die produktspezifische Migration läuft.",
+    },
+    {
+      id: "downgrade",
+      label: "Lokaler Zustand, neuere Version",
+      caption: "Die Engine ist älter als der lokale Zustand. Der Start bricht ab, statt den Zustand herabzustufen.",
+    },
+    {
+      id: "restore",
+      label: "Gültiger Sicherungsstand",
+      caption: "Lokaler Zustand fehlt. Der geprüfte Sicherungsstand wird wiederhergestellt und danach erneut beobachtet.",
+    },
+    {
+      id: "initialize",
+      label: "Kein Zustand, keine Sicherung",
+      caption: "Weder lokaler Zustand noch ein Sicherungsstand liegen vor. Neuer Zustand wird initialisiert und danach erneut beobachtet.",
+    },
+    {
+      id: "invalid",
+      label: "Ungültige Eingaben",
+      caption: "Eingaben sind unvollständig oder widersprüchlich. Der Start bricht ab, bevor Zustand verändert wird.",
+    },
+  ],
+} as const;
+
+const labels = {
   en: {
-    reboot: "Reboot",
-    "fresh-install": "Fresh install",
-    "in-place-upgrade": "In-place upgrade",
-    "dr-restore": "DR restore",
-    "out-of-place-upgrade": "Out-of-place upgrade",
-    migration: "Migration",
-    evacuation: "Evacuation",
+    figure: "Interactive pseudocode for the Bartl startup decision",
+    prompt: "Select an observed state to highlight the resulting branch.",
   },
   de: {
-    reboot: "Reboot",
-    "fresh-install": "Fresh Install",
-    "in-place-upgrade": "In-place Upgrade",
-    "dr-restore": "DR Restore",
-    "out-of-place-upgrade": "Out-of-place Upgrade",
-    migration: "Migration",
-    evacuation: "Evacuation",
+    figure: "Interaktiver Pseudocode für die Bartl-Startentscheidung",
+    prompt: "Wähle einen beobachteten Zustand, um den daraus folgenden Zweig hervorzuheben.",
   },
-};
+} as const;
 
-const btnLabels = labels[lang] || labels["en"];
-
-const captions: Record<string, { none: string; solo: string; same: string }> = {
-  en: {
-    none: "Pick an operation to light up the lines that run for it.",
-    solo: "Its own path - no other operation runs exactly these lines.",
-    same: "Same path as {list} - the mechanism runs these identically.",
-  },
-  de: {
-    none: "Wähle eine Operation - dann leuchten die Zeilen, die dafür laufen.",
-    solo: "Eigener Pfad - keine andere Operation läuft genau diese Zeilen.",
-    same: "Gleicher Pfad wie {list} - der Mechanismus führt diese identisch aus.",
-  },
-};
-
-const caption = captions[lang] || captions["en"];
-
-const scenarios = [
-  "reboot",
-  "fresh-install",
-  "in-place-upgrade",
-  "dr-restore",
-  "out-of-place-upgrade",
-  "migration",
-  "evacuation",
-] as const;
+const scenarios = observations[lang];
+const text = labels[lang];
+const all = "ready upgrade downgrade restore initialize invalid";
 
 type Line = { html: string; scenarios: string };
 
 const lines: Line[] = [
   {
-    html: `<span class="text-[#88c0d0] dark:text-[#0969da]">until</span> <span class="text-[#88c0d0] dark:text-[#0969da]">serving()</span>:`,
-    scenarios:
-      "reboot fresh-install in-place-upgrade dr-restore out-of-place-upgrade migration evacuation",
+    html: `<span class="text-code-keyword">until</span> <span class="text-code-keyword">serving()</span>:`,
+    scenarios: all,
   },
   {
-    html: `    <span class="text-[#88c0d0] dark:text-[#0969da]">if</span> local state exists:`,
-    scenarios: "reboot in-place-upgrade",
+    html: `    local = <span class="text-code-keyword">observe_local_state()</span>`,
+    scenarios: all,
   },
   {
-    html: `        engine version vs state version:`,
-    scenarios: "reboot in-place-upgrade",
+    html: `    backup = <span class="text-code-keyword">observe_backup()</span>`,
+    scenarios: all,
   },
   {
-    html: `            equal:    <span class="text-[#88c0d0] dark:text-[#0969da]">serving()</span>`,
-    scenarios: "reboot",
+    html: `    <span class="text-code-keyword">if</span> incomplete_or_contradictory(local, backup):`,
+    scenarios: all,
   },
   {
-    html: `            engine >: <span class="text-[#88c0d0] dark:text-[#0969da]">migrate()</span>`,
-    scenarios: "in-place-upgrade out-of-place-upgrade",
+    html: `        <span class="text-code-error">abort</span>(<span class="text-code-muted">"invalid inputs"</span>)`,
+    scenarios: "invalid",
   },
   {
-    html: `            engine &lt;: <span class="text-[#bf616a] dark:text-[#cf222e]">abort</span>(<span class="text-[#616e88] dark:text-[#656d76]">"downgrade"</span>)`,
-    scenarios: "",
+    html: `    <span class="text-code-keyword">if</span> local.exists:`,
+    scenarios: "ready upgrade downgrade",
   },
   {
-    html: `    <span class="text-[#88c0d0] dark:text-[#0969da]">else</span>:`,
-    scenarios:
-      "fresh-install dr-restore out-of-place-upgrade migration evacuation",
+    html: `        engine version vs local.version:`,
+    scenarios: "ready upgrade downgrade",
   },
   {
-    html: `        <span class="text-[#88c0d0] dark:text-[#0969da]">if</span> <span class="text-[#88c0d0] dark:text-[#0969da]">fetch_backup()</span>: <span class="text-[#88c0d0] dark:text-[#0969da]">restore</span>(backup)`,
-    scenarios: "dr-restore out-of-place-upgrade migration evacuation",
+    html: `            equal:    <span class="text-code-keyword">serving()</span>`,
+    scenarios: "ready",
   },
   {
-    html: `        <span class="text-[#88c0d0] dark:text-[#0969da]">else</span>:              <span class="text-[#88c0d0] dark:text-[#0969da]">init()</span>`,
-    scenarios: "fresh-install",
+    html: `            engine &gt;: <span class="text-code-keyword">migrate(local)</span>`,
+    scenarios: "upgrade",
   },
   {
-    html: ``,
-    scenarios: "",
+    html: `            engine &lt;: <span class="text-code-error">abort</span>(<span class="text-code-muted">"downgrade"</span>)`,
+    scenarios: "downgrade",
   },
   {
-    html: `<span class="text-[#88c0d0] dark:text-[#0969da]">serving()</span>: run app, schedule backups`,
-    scenarios:
-      "reboot fresh-install in-place-upgrade dr-restore out-of-place-upgrade migration evacuation",
+    html: `    <span class="text-code-keyword">elif</span> backup.valid: <span class="text-code-keyword">restore(backup)</span>`,
+    scenarios: "restore",
+  },
+  {
+    html: `    <span class="text-code-keyword">else</span>:             <span class="text-code-keyword">init()</span>`,
+    scenarios: "initialize",
   },
 ];
-
-// The set of line indices an operation executes.
-const pathOf = (s: string) =>
-  lines
-    .map((l, i) => (l.scenarios.split(" ").includes(s) ? i : -1))
-    .filter((i) => i >= 0);
-
-// Group operations whose executed-line set is identical. The group key is the
-// path itself, so the grouping can never drift from the pseudocode above.
-const classKeyOf = (s: string) => pathOf(s).join(",");
-const membersByKey: Record<string, string[]> = {};
-for (const s of scenarios) (membersByKey[classKeyOf(s)] ||= []).push(s);
-
-const siblingsOf = (s: string) =>
-  membersByKey[classKeyOf(s)]
-    .filter((o) => o !== s)
-    .map((o) => btnLabels[o])
-    .join(", ");
 ---
 
-<div
-  id="ipc-container"
-  data-cap-none={caption.none}
-  data-cap-solo={caption.solo}
-  data-cap-same={caption.same}
->
-  <div
-    class="overflow-hidden rounded-lg border border-[#3b4252] shadow-lg shadow-black/10 dark:border-[#d0d7de] dark:shadow-black/30"
-  >
-    <pre
-      role="figure"
-      aria-label="Bartl decision tree pseudocode"
-      class="overflow-x-auto bg-[#2e3440] px-4 py-5 font-mono text-xs leading-loose text-[#d8dee9] sm:px-6 sm:text-sm md:text-base dark:bg-[#ffffff] dark:text-[#1f2328]"><code>{lines.map((line) => (
-        <span class="ipc-line block transition-opacity duration-300 border-l-2 border-transparent" data-scenarios={line.scenarios} set:html={line.html + "\n"} />
-      ))}</code></pre>
+<div class="ipc-container min-w-0">
+  <figure>
+    <figcaption class="sr-only">{text.figure}</figcaption>
+    <div class="border-code-border shadow-base-content/10 overflow-hidden rounded-lg border shadow-lg">
+      <pre class="bg-code-background text-code-foreground overflow-x-auto px-4 py-5 font-mono text-xs leading-loose sm:px-6 sm:text-sm"><code>{lines.map((line) => (
+          <span class="ipc-line block border-l-2 border-transparent transition-opacity duration-300 motion-reduce:transition-none" data-scenarios={line.scenarios} set:html={line.html + "\n"} />
+        ))}</code></pre>
+    </div>
+  </figure>
+
+  <div class="mt-4 flex flex-wrap gap-2" aria-label={text.prompt}>
+    {scenarios.map((scenario) => (
+      <button
+        type="button"
+        class="btn btn-outline btn-sm ipc-btn h-auto min-h-8 whitespace-normal focus-visible:outline-primary focus-visible:outline-2 focus-visible:outline-offset-2"
+        data-scenario={scenario.id}
+        data-caption={scenario.caption}
+        aria-pressed="false"
+      >
+        {scenario.label}
+      </button>
+    ))}
   </div>
 
-  <div class="mt-4 flex flex-wrap gap-2">
-    {
-      scenarios.map((s) => (
-        <button
-          class="btn btn-outline btn-sm ipc-btn"
-          data-scenario={s}
-          data-class={classKeyOf(s)}
-          data-siblings={siblingsOf(s)}
-        >
-          {btnLabels[s]}
-        </button>
-      ))
-    }
-  </div>
-
-  <p
-    id="ipc-caption"
-    aria-live="polite"
-    class="text-base-content/70 mt-3 min-h-[1.5em] text-sm"
-  >
-    {caption.none}
+  <p aria-live="polite" class="ipc-caption text-base-content/70 mt-3 min-h-6 text-sm">
+    {text.prompt}
   </p>
 </div>
 
 <script>
-  const container = document.getElementById("ipc-container");
-  if (container) {
+  document.querySelectorAll<HTMLElement>(".ipc-container").forEach((container) => {
     const lines = container.querySelectorAll<HTMLSpanElement>(".ipc-line");
     const buttons = container.querySelectorAll<HTMLButtonElement>(".ipc-btn");
-    const captionEl =
-      container.querySelector<HTMLParagraphElement>("#ipc-caption");
-    const capNone = container.dataset.capNone || "";
-    const capSolo = container.dataset.capSolo || "";
-    const capSame = container.dataset.capSame || "";
-    let activeBtn: HTMLButtonElement | null = null;
+    const caption = container.querySelector<HTMLParagraphElement>(".ipc-caption");
+    const prompt = caption?.textContent?.trim() || "";
+    let activeButton: HTMLButtonElement | null = null;
 
-    function update() {
-      const active = activeBtn?.dataset.scenario || null;
-      const activeClass = activeBtn?.dataset.class || null;
+    const update = () => {
+      const active = activeButton?.dataset.scenario;
 
       lines.forEach((line) => {
-        const s = line.dataset.scenarios || "";
-        if (!active) {
-          line.style.opacity = "1";
-          line.style.borderColor = "transparent";
-          line.classList.remove("ipc-active-border");
-        } else if (s.split(" ").includes(active)) {
-          line.style.opacity = "1";
-          line.style.borderColor = "";
-          line.classList.add("ipc-active-border");
-        } else {
-          line.style.opacity = "0.3";
-          line.style.borderColor = "transparent";
-          line.classList.remove("ipc-active-border");
-        }
+        const isActive = !!active && (line.dataset.scenarios || "").split(" ").includes(active);
+        line.classList.toggle("ipc-active-border", isActive);
+        line.style.opacity = !active || isActive ? "1" : "0.28";
       });
 
-      // Every button that runs the identical path lights up together.
-      buttons.forEach((btn) => {
-        btn.classList.toggle(
-          "btn-active",
-          !!activeClass && btn.dataset.class === activeClass,
-        );
+      buttons.forEach((button) => {
+        const isActive = button === activeButton;
+        button.classList.toggle("btn-active", isActive);
+        button.setAttribute("aria-pressed", String(isActive));
       });
 
-      if (captionEl) {
-        if (!active) {
-          captionEl.textContent = capNone;
-        } else {
-          const siblings = activeBtn?.dataset.siblings || "";
-          captionEl.textContent = siblings
-            ? capSame.replace("{list}", siblings)
-            : capSolo;
-        }
-      }
-    }
+      if (caption) caption.textContent = activeButton?.dataset.caption || prompt;
+    };
 
-    buttons.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        activeBtn = activeBtn === btn ? null : btn;
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => {
+        activeButton = activeButton === button ? null : button;
         update();
       });
     });
-  }
+  });
 </script>
 
 <style>
   .ipc-active-border {
-    border-color: #88c0d0;
-  }
-  :global(.dark) .ipc-active-border {
-    border-color: #0969da;
+    border-color: var(--color-code-keyword);
   }
 </style>

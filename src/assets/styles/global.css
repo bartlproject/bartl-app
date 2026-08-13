@@ -51,8 +51,24 @@
   --color-limed-spruce-900: #324347;
   --color-limed-spruce-950: #1e2a2e;
 
+  --color-code-background: #2e3440;
+  --color-code-foreground: #d8dee9;
+  --color-code-border: #4c566a;
+  --color-code-keyword: #88c0d0;
+  --color-code-error: #bf616a;
+  --color-code-muted: #aab3c5;
+
   --font-sans: "Inter Variable", "Helvetica Neue", system-ui, sans-serif;
   --font-mono: "Fira Code", "Fira Mono", "SF Mono", Menlo, monospace;
+}
+
+[data-theme="dark"] {
+  --color-code-background: #f6f8fa;
+  --color-code-foreground: #1f2328;
+  --color-code-border: #d0d7de;
+  --color-code-keyword: #0969da;
+  --color-code-error: #cf222e;
+  --color-code-muted: #656d76;
 }
 
 @layer base {
